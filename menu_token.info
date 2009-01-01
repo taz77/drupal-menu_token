@@ -1,0 +1,4 @@
+; $Id$
+name = Menu Token
+description = "Provides tokens in menu items(links)."
+dependencies = token
