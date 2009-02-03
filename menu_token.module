@@ -44,11 +44,12 @@ function menu_token_edit_item_form_submit($form_id, $form_values) {
 function menu_token_footer() {
   global $_menu;
   $token_enabled = variable_get('menu_token_enabled', array());
+
   // Override paths
   foreach ($token_enabled as $mid => $path) {
     $_menu['items'][$mid]['path'] = token_replace_multiple($path);
-  }
 
-  // Force drupal to refresh menu tree with tokenized version,
-  menu_get_item(115, NULL, TRUE);
+    // Force drupal to refresh menu tree with tokenized version,
+    menu_get_item($mid, NULL, TRUE);
+  }
 }
