@@ -21,12 +21,26 @@ function menu_token_form_alter($form_id, &$form) {
       '#default_value' => isset($token_enabled[$form['mid']['#value']]),
     );
 
-    // Let me handle values submitted by form
-    $form['#submit']['menu_token_edit_item_form_submit'] = array();
+    // Replace submit handler taking care on sort
+    $form_submit = array();
+    foreach ($form['#submit'] as $function => $params) {
+      $function = $function == 'menu_edit_item_form_submit' ?
+                    'menu_token_edit_item_form_submit' : $function;
+      $form_submit[$function] = $params;
+      unset($function);
+      unset($params);
+    }
+    $form['#submit'] =& $form_submit;
   }
 }
 
+/**
+ * Process menu and menu item add/edit form submissions.
+ *
+ * Overrides menu_token_edit_item_form_submit().
+ */
 function menu_token_edit_item_form_submit($form_id, $form_values) {
+  $form_values['mid'] = menu_edit_item_save($form_values);
   $token_enabled = variable_get('menu_token_enabled', array());
   if (
     isset($form_values['token_enabled']) ?
@@ -36,6 +50,7 @@ function menu_token_edit_item_form_submit($form_id, $form_values) {
   else
     unset($token_enabled[$form_values['mid']]);
   variable_set('menu_token_enabled', $token_enabled);
+  return 'admin/build/menu';
 }
 
 /**
