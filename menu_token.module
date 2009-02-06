@@ -32,6 +32,9 @@ function menu_token_form_alter($form_id, &$form) {
     }
     $form['#submit'] =& $form_submit;
   }
+  elseif ($form_id == 'menu_item_delete_form') {
+    $form['#submit']['menu_token_item_delete_form_submit'] = array();
+  }
 }
 
 /**
@@ -51,6 +54,16 @@ function menu_token_edit_item_form_submit($form_id, $form_values) {
     unset($token_enabled[$form_values['mid']]);
   variable_set('menu_token_enabled', $token_enabled);
   return 'admin/build/menu';
+}
+
+/**
+ * Extends menu_token_item_delete_form_submit().
+ */
+function menu_token_item_delete_form_submit($form_id, $form_values) {
+  $token_enabled = variable_get('menu_token_enabled', array());
+  if (isset($token_enabled[$form_values['mid']]))
+    unset($token_enabled[$form_values['mid']]);
+  variable_set('menu_token_enabled', $token_enabled);
 }
 
 /**
