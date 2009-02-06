@@ -34,7 +34,7 @@ function menu_token_edit_item_form_submit($form_id, $form_values) {
   )
     $token_enabled[$form_values['mid']] = $form_values['path'];
   else
-    unset($token_enabled[$form_values['enabled']]['mid']);
+    unset($token_enabled[$form_values['mid']]);
   variable_set('menu_token_enabled', $token_enabled);
 }
 
