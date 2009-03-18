@@ -69,7 +69,21 @@ function menu_token_item_delete_form_submit($form_id, $form_values) {
 /**
  * Implementation of hook_footer().
  */
+function menu_token_footer() {
+  menu_token_replace();
+}
+/**
+ * Implementation of hook_menu().
+ */
 function menu_token_menu($may_cache) {
+  menu_token_replace();
+  return array();
+}
+
+/**
+ * Make token replacements in menu items.
+ */
+function menu_token_replace() {
   global $_menu;
   $token_enabled = variable_get('menu_token_enabled', array());
 
