@@ -1,4 +1,5 @@
 ; $Id$
 name = Menu Token
 description = "Provides tokens in menu items(links)."
-dependencies = token
+dependencies[] = token
+core = 6.x
