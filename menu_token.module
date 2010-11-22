@@ -30,7 +30,7 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
 
   // Token substitutions help.
   $form['menu']['path']['token_help'] = array(
-    '#title' => t('Tokens list can be used.'),
+    '#title' => t('Replacement patterns'),
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
@@ -58,8 +58,13 @@ function menu_token_form_menu_edit_item_validate($form, &$form_state) {
     $form_state['values']['menu']['options']['alter'] = TRUE;
 
     $path = $form_state['values']['menu']['path']['link_path'];
-    // Check access rights for current author to creat this menu item.
-    if ($menu_item = menu_get_item(token_replace($path))) {
+    // Check whether path is external.
+    $substituted_path = token_replace($path);
+    if (menu_path_is_external($substituted_path)) {
+      return;
+    }
+    // Check access rights for current author to create this menu item.
+    if ($menu_item = menu_get_item($substituted_path)) {
       if ($menu_item['access']) {
         return;
       }
@@ -75,14 +80,16 @@ function menu_token_form_menu_edit_item_validate($form, &$form_state) {
  * Custom submit function for form menu_edit_form.
  */
 function menu_token_form_menu_edit_item_submit($form, &$form_state) {
-  if (!$form_state['values']['menu']['path']['token_enabled']) {
-    return;
-  }
-
   $menu_token_enabled = variable_get('menu_token_enabled', array());
 
   $mlid = $form_state['values']['menu']['mlid'];
-  $menu_token_enabled[$mlid] = $form_state['values']['menu']['path']['link_path'];
+  if (!$form_state['values']['menu']['path']['token_enabled']) {
+    unset($menu_token_enabled[$mlid]);
+  }
+  else {
+    $menu_token_enabled[$mlid] = $form_state['values']['menu']['path']['link_path'];
+  }
+
   variable_set('menu_token_enabled', $menu_token_enabled);
 }
 
@@ -92,11 +99,27 @@ function menu_token_form_menu_edit_item_submit($form, &$form_state) {
 function menu_token_translated_menu_link_alter(&$item, $map) {
   $menu_token_enabled = variable_get('menu_token_enabled', array());
   $mlid = $item['mlid'];
+
   // Check whether we should replace the path.
   if (isset($menu_token_enabled[$mlid])) {
     // Replace with tokens.
     $item['link_path'] = token_replace($menu_token_enabled[$mlid], 'global');
     $item['href'] = $item['link_path'];
+
+    // Override active trail if showing front page but translated link is not to front page.
+    // NOTE: This relies on any parent of a tokenised menu item having "option" flag "alter" set, 
+    // which is most easily achieved by setting it to use token translation but not specifying a token.
+    // Otherwise parent does not get processed through this function and because its untranslated child has
+    // an href of <front>, the menu system thinks it is part of the active trail to the front page.
+    if (drupal_is_front_page() && $item['href'] != drupal_get_normal_path(variable_get('site_frontpage', 'node'))) {
+      $item['in_active_trail'] = FALSE;
+    }
+
+    // Check whether path is external.
+    if (menu_path_is_external($item['link_path'])) {
+      return;
+    }
+
     // Load menu_item and check access.
     if ($menu_item = menu_get_item($item['link_path'])) {
       $item['access'] = $menu_item['access'];
