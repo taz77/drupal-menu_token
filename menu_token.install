@@ -2,16 +2,12 @@
 // $Id$
 
 /**
- * Implementation of hook_install().
+ * @file
+ *   Install file for menu_token module.
  */
-function menu_token_install() {
-  // Set the module weight to -2, so that the menu_token.module's hook_menu()
-  // implementation get's called before core node's implementation ...
-  db_query("UPDATE {system} SET weight = -10 WHERE name = 'menu_token'");
-}
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function menu_token_uninstall() {
   variable_del('menu_token_enabled');
