@@ -5,8 +5,59 @@
  */
 
 /**
+ * Implementation of hook_schema().
+ */
+function menu_token_schema() {
+  $schema['menu_token'] = array(
+    'description' => t('Menu token properties'),
+    'fields' => array (
+      'mlid' => array (
+        'description' => t('The menu link {menu_links}.mlid'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'link_path' => array (
+        'description' => t('The actual path with tokens'),
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('mlid'),
+    'indexes' => array(
+      'mlid' => array('mlid'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install()
+ */
+function menu_token_install() {
+  drupal_install_schema('menu_token');
+}
+
+/**
  * Implementation of hook_uninstall().
  */
 function menu_token_uninstall() {
-  variable_del('menu_token_enabled');
+  drupal_uninstall_schema('menu_token');
+}
+
+/**
+ * Implementation of hook_update_N().
+ */
+function menu_token_update_6001() {
+  $ret = array();
+  drupal_install_schema('menu_token');
+  foreach (variable_get('menu_token_enabled', array()) as $mlid => $link_path) {
+    $item = (object)array('mlid' => $mlid, 'link_path' => $link_path);
+    drupal_write_record('menu_token', $item);
+    unset($item);
+  }
+  return $ret;
 }
