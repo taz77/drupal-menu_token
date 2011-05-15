@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * @file
+ *
+ * Menu Token module.
+ *
+ */
+
 module_load_include('inc', 'menu_token');
 module_load_include('inc', 'menu_token', 'menu_token.admin');
 
