@@ -36,8 +36,7 @@ function menu_token_schema() {
 /**
  * Implementation of hook_update_N().
  */
-function menu_token_update_6000() {
-  $ret = array();
+function menu_token_update_7000(&$sandbox) {
   $schema['menu_token'] = array(
     'description' => t('Menu token properties'),
     'fields' => array (
@@ -62,4 +61,38 @@ function menu_token_update_6000() {
   db_create_table('menu_token', $schema['menu_token']);
 
   return $ret;
+}
+
+
+/**
+ * Implementation of hook_update_N().
+ */
+function menu_token_update_7001(&$sandbox) {
+
+  // Initializing sandbox variables.
+  if (!isset($sandbox['progress'])) {
+    // Preparing array of menu items for batch insert.
+    foreach (variable_get('menu_token_enabled', array()) as $mlid => $link_path) {
+      $sandbox['items'][] = array('mlid' => $mlid, 'link_path' => $link_path);
+    }
+    $sandbox['progress'] = 0;
+    $sandbox['max'] = count($sandbox['items']);
+  }
+
+  // Insert current record.
+  if (!empty($sandbox['max'])) {
+    db_merge('menu_token')
+      ->key(array('mlid' => $sandbox['items'][$sandbox['progress']]['mlid']))
+      ->fields(array('link_path' => $sandbox['items'][$sandbox['progress']]['link_path']))
+      ->execute();
+  }
+
+  $sandbox['progress']++;
+
+  $sandbox['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+
+  // Delete variable in case of all queries were executed
+  if ($sandbox['#finished']) {
+    variable_del('menu_token_enabled');
+  }
 }
