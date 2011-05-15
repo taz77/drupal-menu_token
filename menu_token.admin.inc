@@ -9,7 +9,7 @@
 
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implementation hook_form_FORM_ID_alter().
  */
 function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
   // Create new fieldset
@@ -32,6 +32,7 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
   if ($menu_token_item) {
     $form['token']['link_path']['#default_value'] = $menu_token_item['link_path'];
   }
+  
   $form['token']['token_enabled'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use tokens in title and in path.'),
@@ -85,7 +86,7 @@ function menu_token_form_menu_edit_item_submit($form, &$form_state) {
   }
   else {
     menu_token_set($mlid, array(
-      'link_path' => $form_state['values']['token_link_path']
+      'link_path' => trim($form_state['values']['token_link_path'])
     ));
   }
 }
