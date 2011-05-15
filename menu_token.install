@@ -70,16 +70,16 @@ function menu_token_update_6000() {
     'primary key' => array('mlid'),
   );
 
-  // create schema
+  // Create schema.
   db_create_table($ret, 'menu_token', $schema['menu_token']);
   
-  // ibsert records
+  // Insert records.
   foreach (variable_get('menu_token_enabled', array()) as $mlid => $link_path) {
     $link_path = db_escape_string($link_path);
     $ret[] = update_sql("INSERT INTO {menu_token} (mlid, link_path) VALUES ($mlid, '$link_path')");
   }
 
-  // delete variable in case of all queries were successful
+  // Delete variable in case of all queries were successful.
   $success = true;
   foreach ($ret as $r) {
     $success = $success && $r['success'];
