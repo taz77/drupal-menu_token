@@ -26,9 +26,6 @@ function menu_token_schema() {
       ),
     ),
     'primary key' => array('mlid'),
-    'indexes' => array(
-      'mlid' => array('mlid'),
-    ),
   );
 
   return $schema;
@@ -71,9 +68,6 @@ function menu_token_update_6000() {
       ),
     ),
     'primary key' => array('mlid'),
-    'indexes' => array(
-      'mlid' => array('mlid'),
-    ),
   );
 
   // create schema
