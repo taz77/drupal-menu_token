@@ -1,9 +1,9 @@
 <?php
-
 /**
  * @file
  *   Install file for menu_token module.
  */
+
 
 /**
  * Implementation of hook_schema().
