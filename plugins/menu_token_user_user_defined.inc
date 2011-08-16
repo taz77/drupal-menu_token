@@ -1,0 +1,28 @@
+<?php
+
+class menu_token_user_user_defined implements menu_token_handler {
+  function form_options($form_state) {
+    $form['menu_token_user_user_defined'] = array(
+      '#title' => t('User name'),
+      '#description' => t('The user name of the user that this token handler should load.'),
+      '#type' => 'textfield',
+      '#default_value' => '',
+    );
+
+    return $form;
+  }
+
+  function form_submit($form, &$form_state) {
+  }
+
+  function form_validate($form, &$form_state) {
+  }
+
+  function form_alter($form, $form_state) {
+    
+  }
+
+  function object_load($item, $map) {
+    
+  }
+}
