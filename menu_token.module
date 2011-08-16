@@ -186,7 +186,9 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
 
     foreach ($plugins->types as $type => $items) {
       $info = token_get_info($type);
-
+      $default = isset($form_state['values']['menu_token_type_' . $type]) ? $form_state['values']['menu_token_type_' . $type] : NULL;
+      $default = in_array($default, array_keys($items)) ? $default : NULL;
+      
       $form['menu_token_options'][$type] = array(
         '#type' => 'fieldset',
         '#title' => $info['name'],
@@ -198,24 +200,31 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
         '#type' => 'select',
         '#title' => t('Method'),
         '#options' => array('_none' => t('Disabled')),
-        '#default_value' => isset($form_state['values']['menu_token_type_' . $type]) ? $form_state['values']['menu_token_type_' . $type] : array('_none'),
+        '#default_value' => isset($default) ? $default : array('_none'),
+        '#ajax' => array(
+          'callback' => 'menu_token_method_callback',
+          'wrapper' => 'menu-token-method-options-' . $type,
+          'method' => 'replace',
+          'effect' => 'fade',
+        ),
       );
 
       foreach ($items as $name => $label) {
-        $plugin = menu_token_get_plugin($name);
-        
         $form['menu_token_options'][$type]['menu_token_type_' . $type]['#options'][$name] = $label;
+      }
 
+      $form['menu_token_options'][$type]['menu_token_method_options_wrapper'] = array(
+        '#type' => 'container',
+        '#prefix' => '<div id="menu-token-method-options-' . $type . '">',
+        '#suffix' => '</div>',
+      );
+
+      if (isset($default) && $plugin = menu_token_get_plugin($default)) {
         if ($options = $plugin['handler']->form_options($form_state)) {
-          $form['menu_token_options'][$type]['menu_token_plugin_' . $name] = array(
+          $form['menu_token_options'][$type]['menu_token_method_options_wrapper']['menu_token_method_options'] = array(
             '#type' => 'fieldset',
             '#title' => t('Method options'),
             '#collapsible' => TRUE,
-            '#states' => array(
-              'visible' => array(
-                ':input[name="' . 'menu_token_type_' . $type . '"]' => array('value' => $name),
-              ),
-            ),
           ) + $options;
         }
       }
@@ -385,4 +394,16 @@ function menu_token_form_menu_overview_form_alter(&$form, $form_state) {
       $item['title']['#markup'] .= theme('menu_token_uses_tokens');
     }
   }
+}
+
+/**
+ * Ajax callback for the method select dropdown.
+ */
+function menu_token_method_callback($form, $form_state) {
+  $parents = $form_state['triggering_element']['#array_parents'];
+
+  array_pop($parents);
+  array_push($parents, 'menu_token_method_options_wrapper');
+
+  return drupal_array_get_nested_value($form, $parents);
 }
