@@ -7,7 +7,7 @@ interface menu_token_handler {
 
   function form_validate($form, &$form_state);
 
-  function form_alter($form, $form_state);
+  function form_alter(&$form, &$form_state);
 
   function object_load($item, $map);
 }

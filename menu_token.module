@@ -183,7 +183,7 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
         ),
       ),
     );
-    
+
     foreach ($plugins->types as $type => $items) {
       $info = token_get_info($type);
 
@@ -240,8 +240,13 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
       '#token_types' => array_keys($plugins->types),
     );
     
-    // Add custom validation function.
+    // Add custom validation and submit functions.
     array_unshift($form['#validate'], 'menu_token_form_menu_edit_item_validate');
+    array_unshift($form['#submit'], 'menu_token_form_menu_edit_item_submit');
+
+    foreach ($plugins->plugins as $name => $plugin) {
+      $plugin['handler']->form_alter($form, $form_state);
+    }
   }
 }
 
@@ -253,12 +258,28 @@ function menu_token_form_menu_edit_item_validate($form, &$form_state) {
 
   // If token replacing is enabled and this is a custom menu item.
   if ($values['module'] == 'menu' && !empty($values['menu_token_enabled'])) {
+    $plugins = menu_token_get_plugins();
+    
     // Store the actual path in the options array.
     $values['options']['menu_token_link_path'] = $values['link_path'];
-    $values['options']['menu_token_data'] = array();
-
-    foreach ($form['menu_token_options'] as $type) {
-      
+    $values['options']['menu_token_data'] = array();    
+    
+    foreach (array_keys($plugins->types) as $type) {
+      if (!empty($values['menu_token_type_' . $type]) && $values['menu_token_type_' . $type] != '_none') {
+        $plugin = $values['menu_token_type_' . $type];
+        if ($plugin = menu_token_get_plugin($plugin)) {
+          $values['options']['menu_token_data'][$type] = array(
+            'type' => $type,
+            'handler' => $plugin['name'],
+            'options' => array(),
+          );
+          
+          // Validate the form via the handler.
+          if ($output = $plugin['handler']->form_validate($form, $form_state)) {
+            $values['options']['menu_token_data'][$type]['options'] += $output;
+          }
+        }
+      }
     }
 
     // Substitute link_path with fake well known '<front>'.
@@ -268,6 +289,30 @@ function menu_token_form_menu_edit_item_validate($form, &$form_state) {
     // Use unset() rather than setting to empty string to avoid redundant
     // serialized data being stored.
     unset($values['options']['attributes']['menu_token_link_path'], $values['options']['menu_token_data']);
+  }
+}
+
+/**
+ * Custom submit for form menu_edit_item.
+ */
+function menu_token_form_menu_edit_item_submit($form, &$form_state) {
+  $values = &$form_state['values'];
+
+  // If token replacing is enabled and this is a custom menu item.
+  if ($values['module'] == 'menu' && !empty($values['menu_token_enabled'])) {
+    $plugins = menu_token_get_plugins();
+    
+    foreach (array_keys($plugins->types) as $type) {
+      if (!empty($values['menu_token_type_' . $type]) && $values['menu_token_type_' . $type] != '_none') {
+        $plugin = $values['menu_token_type_' . $type];
+        if ($plugin = menu_token_get_plugin($plugin)) {
+          // Validate the form via the handler.
+          if ($output = $plugin['handler']->form_submit($form, $form_state)) {
+            $values['options']['menu_token_data'][$type]['options'] += $output;
+          }
+        }
+      }
+    }
   }
 }
 
