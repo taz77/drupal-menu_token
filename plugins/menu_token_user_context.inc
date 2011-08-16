@@ -15,5 +15,10 @@ class menu_token_user_context implements menu_token_handler {
   }
 
   function object_load($options) {
+    if (arg(0) == 'user' && is_numeric(arg(1))) {
+      return user_load(arg(1));
+    }
+
+    return FALSE;
   }
 }

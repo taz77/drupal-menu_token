@@ -183,17 +183,18 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
         ),
       ),
     );
-
+    
     foreach ($plugins->types as $type => $items) {
       $info = token_get_info($type);
+      $default = NULL;
       
       if (isset($form_state['values']['menu_token_type_' . $type])) {
         $default = $form_state['values']['menu_token_type_' . $type];
       }
-      else if (!empty($options['menu_token_data']) && !empty($options['menu_token_data'][$type])) {
+      else if (!empty($options['menu_token_data'][$type])) {
         $default = $options['menu_token_data'][$type]['handler'];
       }
-
+      
       $default = isset($default) && in_array($default, array_keys($items)) ? $default : NULL;
 
       $form['menu_token_options'][$type] = array(
@@ -225,12 +226,12 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
       );
 
       if (isset($default) && $plugin = menu_token_get_plugin($default)) {
-        if ($options = $plugin['handler']->form_options($form_state)) {
+        if ($append = $plugin['handler']->form_options($form_state)) {
           $form['menu_token_options'][$type]['menu_token_method_options_wrapper']['menu_token_method_options'] = array(
             '#type' => 'fieldset',
             '#title' => t('Method options'),
             '#collapsible' => TRUE,
-          ) + $options;
+          ) + $append;
         }
       }
     }
@@ -342,9 +343,9 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
     $data = array();
 
     if (isset($item['options']['menu_token_data'])) {
-      foreach ($item['options']['menu_token_data'] as $type => $data) {
-        if (isset($info['types'][$type]) && isset($data['handler']) && $plugin = menu_token_get_plugin($data['handler'])) {
-          if ($object = $plugin['handler']->object_load($data['options'])) {
+      foreach ($item['options']['menu_token_data'] as $type => $options) {
+        if (isset($info['types'][$type]) && isset($options['handler']) && $plugin = menu_token_get_plugin($options['handler'])) {
+          if ($object = $plugin['handler']->object_load($options['options'])) {
             $data[$type] = $object;
           }          
         }
