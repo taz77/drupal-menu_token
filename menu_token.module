@@ -344,10 +344,10 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
 
     if (isset($item['options']['menu_token_data'])) {
       foreach ($item['options']['menu_token_data'] as $type => $options) {
-        if (isset($info['types'][$type]) && isset($options['handler']) && $plugin = menu_token_get_plugin($options['handler'])) {
+        if (!empty($info['types'][$type]) && $plugin = menu_token_get_plugin($options['handler'])) {
           if ($object = $plugin['handler']->object_load($options['options'])) {
             $data[$type] = $object;
-          }          
+          }
         }
       }
     }
