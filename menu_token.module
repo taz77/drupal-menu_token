@@ -187,14 +187,14 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
     foreach ($plugins->types as $type => $items) {
       $info = token_get_info($type);
 
-      $form['menu_token_options']['menu_token_type_' . $type . '_wrapper'] = array(
+      $form['menu_token_options'][$type] = array(
         '#type' => 'fieldset',
         '#title' => $info['name'],
         '#description' => $info['description'],
         '#collapsible' => TRUE,
       );
 
-      $form['menu_token_options']['menu_token_type_' . $type . '_wrapper']['menu_token_type_' . $type] = array(
+      $form['menu_token_options'][$type]['menu_token_type_' . $type] = array(
         '#type' => 'select',
         '#title' => t('Method'),
         '#options' => array('_none' => t('Disabled')),
@@ -204,10 +204,10 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
       foreach ($items as $name => $label) {
         $plugin = menu_token_get_plugin($name);
         
-        $form['menu_token_options']['menu_token_type_' . $type . '_wrapper']['menu_token_type_' . $type]['#options'][$name] = $label;
+        $form['menu_token_options'][$type]['menu_token_type_' . $type]['#options'][$name] = $label;
 
         if ($options = $plugin['handler']->form_options($form_state)) {
-          $form['menu_token_options']['menu_token_type_' . $type . '_wrapper']['menu_token_plugin_' . $name] = array(
+          $form['menu_token_options'][$type]['menu_token_plugin_' . $name] = array(
             '#type' => 'fieldset',
             '#title' => t('Method options'),
             '#collapsible' => TRUE,
@@ -255,6 +255,11 @@ function menu_token_form_menu_edit_item_validate($form, &$form_state) {
   if ($values['module'] == 'menu' && !empty($values['menu_token_enabled'])) {
     // Store the actual path in the options array.
     $values['options']['menu_token_link_path'] = $values['link_path'];
+    $values['options']['menu_token_data'] = array();
+
+    foreach ($form['menu_token_options'] as $type) {
+      
+    }
 
     // Substitute link_path with fake well known '<front>'.
     $values['link_path'] = '<front>';
@@ -262,8 +267,7 @@ function menu_token_form_menu_edit_item_validate($form, &$form_state) {
   else {
     // Use unset() rather than setting to empty string to avoid redundant
     // serialized data being stored.
-    unset($values['options']['attributes']['menu_token_link_path']);
-
+    unset($values['options']['attributes']['menu_token_link_path'], $values['options']['menu_token_data']);
   }
 }
 
