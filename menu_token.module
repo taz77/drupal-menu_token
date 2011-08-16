@@ -186,19 +186,24 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
 
     foreach ($plugins->types as $type => $items) {
       $info = token_get_info($type);
-      $default = isset($form_state['values']['menu_token_type_' . $type]) ? $form_state['values']['menu_token_type_' . $type] : NULL;
-      $default = in_array($default, array_keys($items)) ? $default : NULL;
       
+      if (isset($form_state['values']['menu_token_type_' . $type])) {
+        $default = $form_state['values']['menu_token_type_' . $type];
+      }
+      else if (!empty($options['menu_token_data']) && !empty($options['menu_token_data'][$type])) {
+        $default = $options['menu_token_data'][$type]['handler'];
+      }
+
+      $default = isset($default) && in_array($default, array_keys($items)) ? $default : NULL;
+
       $form['menu_token_options'][$type] = array(
-        '#type' => 'fieldset',
-        '#title' => $info['name'],
-        '#description' => $info['description'],
-        '#collapsible' => TRUE,
+        '#type' => 'container',
       );
 
       $form['menu_token_options'][$type]['menu_token_type_' . $type] = array(
         '#type' => 'select',
-        '#title' => t('Method'),
+        '#title' => t('Method for') . ' ' . $info['name'],
+        '#description' => $info['description'],
         '#options' => array('_none' => t('Disabled')),
         '#default_value' => isset($default) ? $default : array('_none'),
         '#ajax' => array(
@@ -208,7 +213,7 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
           'effect' => 'fade',
         ),
       );
-
+      
       foreach ($items as $name => $label) {
         $form['menu_token_options'][$type]['menu_token_type_' . $type]['#options'][$name] = $label;
       }
@@ -338,9 +343,10 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
 
     if (isset($item['options']['menu_token_data'])) {
       foreach ($item['options']['menu_token_data'] as $type => $data) {
-        if (isset($info['types'][$type]) && isset($data['handler']) && $handler = menu_token_get_plugin($data['handler'])) {
-          $options = isset($data['options']) ? $data['options'] : array();
-          $data[$type] = $handler->load_object($options);
+        if (isset($info['types'][$type]) && isset($data['handler']) && $plugin = menu_token_get_plugin($data['handler'])) {
+          if ($object = $plugin['handler']->object_load($data['options'])) {
+            $data[$type] = $object;
+          }          
         }
       }
     }

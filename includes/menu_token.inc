@@ -9,5 +9,5 @@ interface menu_token_handler {
 
   function form_alter(&$form, &$form_state);
 
-  function object_load($item, $map);
+  function object_load($options);
 }

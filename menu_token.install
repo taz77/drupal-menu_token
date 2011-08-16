@@ -94,6 +94,7 @@ function menu_token_update_7002(&$sandbox) {
       foreach ($links as $mlid => $options) {
         $options = unserialize($options);
         $options['menu_token_link_path'] = $tokens[$mlid];
+        $options['menu_token_link_data'] = array();
 
         db_update('menu_links')
           ->fields(array('options' => serialize($options)))
