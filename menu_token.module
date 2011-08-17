@@ -110,7 +110,7 @@ function menu_token_menu_token_plugins() {
       ),
     );
   }
-
+  dsm('test');
   if (module_exists('taxonomy')) {
     $plugins['term_context'] = array(
       'type' => 'term',
@@ -197,6 +197,9 @@ function menu_token_get_plugin($name) {
 
 /**
  * Retrieves a list of all available menu token plugins.
+ *
+ * @return
+ *   An array containing all available plugins.
  */
 function menu_token_get_plugins() {
   return _menu_token_plugin_info()->plugins;
@@ -205,13 +208,16 @@ function menu_token_get_plugins() {
 /**
  * Retrieves a list of all token types that are covered by the available menu
  * token plugins.
+ *
+ * @return
+ *   An array containing all token types covered by menu token plugins.
  */
 function menu_token_get_plugin_types() {
   return _menu_token_plugin_info()->types;
 }
 
 /**
- * Builds and saves information about the menu token plugins and their types.
+ * Builds and returns information about the menu token plugins and their types.
  */
 function _menu_token_plugin_info() {
   $cache = &drupal_static(__FUNCTION__);
