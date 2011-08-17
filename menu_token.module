@@ -110,7 +110,7 @@ function menu_token_menu_token_plugins() {
       ),
     );
   }
-  dsm('test');
+  
   if (module_exists('taxonomy')) {
     $plugins['term_context'] = array(
       'type' => 'term',
