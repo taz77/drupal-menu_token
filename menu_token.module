@@ -140,8 +140,8 @@ function menu_token_menu_token_plugins() {
       'description' => t('Uses a user-defined term to retrieve the taxonomy term object.'),
       'handler' => array(
         'path' => drupal_get_path('module', 'menu_token') . '/plugins',
-        'file' => 'menu_token_user_term_defined.inc',
-        'class' => 'menu_token_user_term_defined',
+        'file' => 'menu_token_term_user_defined.inc',
+        'class' => 'menu_token_term_user_defined',
       ),
     );
   }
