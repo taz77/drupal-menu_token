@@ -5,6 +5,8 @@
  * Menu Token module.
  */
 
+module_load_include('inc', 'menu_token', 'includes/menu_token.admin');
+
 /**
  * Implementation of hook_theme().
  */
@@ -39,8 +41,8 @@ function menu_token_ctools_plugin_type() {
  * Implements hook_menu_token_plugins().
  */
 function menu_token_menu_token_plugins() {
-  return array(
-    'node_context' => array(
+  if (module_exists('node')) {
+    $plugins['node_context'] = array(
       'type' => 'node',
       'label' => t('Node from context'),
       'description' => t('Picks a node from the current context.'),
@@ -49,8 +51,9 @@ function menu_token_menu_token_plugins() {
         'file' => 'menu_token_node_context.inc',
         'class' => 'menu_token_node_context',
       ),
-    ),
-    'node_random' => array(
+    );
+
+    $plugins['node_random'] = array(
       'type' => 'node',
       'label' => t('Random node'),
       'description' => t('Picks a random node from the database.'),
@@ -59,8 +62,9 @@ function menu_token_menu_token_plugins() {
         'file' => 'menu_token_node_random.inc',
         'class' => 'menu_token_node_random',
       ),
-    ),
-    'node_user_defined' => array(
+    );
+
+    $plugins['node_user_defined'] = array(
       'type' => 'node',
       'label' => t('User-defined node'),
       'description' => t('Uses a user-defined node id to retrieve the node object.'),
@@ -69,8 +73,11 @@ function menu_token_menu_token_plugins() {
         'file' => 'menu_token_node_user_defined.inc',
         'class' => 'menu_token_node_user_defined',
       ),
-    ),
-    'user_context' => array(
+    );
+  }
+
+  if (module_exists('user')) {
+    $plugins['user_context'] = array(
       'type' => 'user',
       'label' => t('User from context'),
       'description' => t('Picks a user from the current context.'),
@@ -79,8 +86,9 @@ function menu_token_menu_token_plugins() {
         'file' => 'menu_token_user_context.inc',
         'class' => 'menu_token_user_context',
       ),
-    ),
-    'user_random' => array(
+    );
+
+    $plugins['user_random'] = array(
       'type' => 'user',
       'label' => t('Random user'),
       'description' => t('Picks a random user from the database.'),
@@ -89,8 +97,9 @@ function menu_token_menu_token_plugins() {
         'file' => 'menu_token_user_random.inc',
         'class' => 'menu_token_user_random',
       ),
-    ),
-    'user_user_defined' => array(
+    );
+
+    $plugins['user_user_defined'] = array(
       'type' => 'user',
       'label' => t('User-defined user'),
       'description' => t('Uses a user-defined user name to retrieve the user object.'),
@@ -99,18 +108,88 @@ function menu_token_menu_token_plugins() {
         'file' => 'menu_token_user_user_defined.inc',
         'class' => 'menu_token_user_user_defined',
       ),
-    ),
-  );
+    );
+  }
+
+  if (module_exists('taxonomy')) {
+    $plugins['term_context'] = array(
+      'type' => 'term',
+      'label' => t('Taxonomy term from context'),
+      'description' => t('Picks a taxonomy term from the current context.'),
+      'handler' => array(
+        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
+        'file' => 'menu_token_term_context.inc',
+        'class' => 'menu_token_term_context',
+      ),
+    );
+
+    $plugins['term_random'] = array(
+      'type' => 'term',
+      'label' => t('Random taxonomy term'),
+      'description' => t('Picks a random taxonomy term from the one of the defined vocabularies.'),
+      'handler' => array(
+        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
+        'file' => 'menu_token_term_random.inc',
+        'class' => 'menu_token_term_random',
+      ),
+    );
+
+    $plugins['term_user_defined'] = array(
+      'type' => 'term',
+      'label' => t('User-defined taxonomy term'),
+      'description' => t('Uses a user-defined term to retrieve the taxonomy term object.'),
+      'handler' => array(
+        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
+        'file' => 'menu_token_user_term_defined.inc',
+        'class' => 'menu_token_user_term_defined',
+      ),
+    );
+  }
+
+  return $plugins;
 }
 
 /**
- * @todo
+ * Retrieves the handler of a menu token plugin.
+ *
+ * @param $name
+ *   The name of a plugin.
+ *
+ * @return
+ *   A menu_token_handler object that represents the handler of the plugin
+ *   defined by $name or FALSE if no plugin named $name exists.
  */
-function menu_token_get_plugin($plugin) {
-  if ($plugins = menu_token_get_plugins()) {
-    if (isset($plugins->plugins[$plugin])) {
-      return $plugins->plugins[$plugin];
+function menu_token_get_handler($name) {
+  $handlers = &drupal_static(__FUNCTION__);
+
+  if (!isset($handlers[$name])) {
+    if ($plugin = menu_token_get_plugin($name)) {
+      $handlers[$name] = new $plugin['class']($plugin);
     }
+  }
+
+  if (isset($handlers[$name])) {
+    return $handlers[$name];
+  }
+
+  return FALSE;
+}
+
+/**
+ * Retrieves the handler of a menu token plugin.
+ *
+ * @param $name
+ *   The name of a plugin.
+ *
+ * @return
+ *   A menu_token_handler object that represents the handler of the plugin
+ *   defined by $name or FALSE if no plugin named $name exists.
+ */
+function menu_token_get_plugin($name) {
+  $plugins = _menu_token_plugin_info()->plugins;
+  
+  if (isset($plugins[$name])) {
+    return $plugins[$name];
   }
 
   return FALSE;
@@ -120,215 +199,43 @@ function menu_token_get_plugin($plugin) {
  * @todo
  */
 function menu_token_get_plugins() {
-  module_load_include('inc', 'menu_token', 'includes/menu_token');
+  return _menu_token_plugin_info()->plugins;
+}
 
+/**
+ * @todo
+ */
+function menu_token_get_plugin_types() {
+  return _menu_token_plugin_info()->types;
+}
+
+/**
+ * @todo
+ */
+function _menu_token_plugin_info() {
   $cache = &drupal_static(__FUNCTION__);
 
   if (!isset($cache)) {
     ctools_include('plugins');
-
+    module_load_include('inc', 'menu_token', 'includes/menu_token');
+    
     $cache = (object) array(
       'plugins' => array(),
       'types' => array(),
     );
 
-    $types = token_get_info();
-    $types = array_keys($types['types']);
+    $info = token_get_info();
     
     foreach (ctools_get_plugins('menu_token', 'plugins') as $plugin) {
-      if (in_array($plugin['type'], $types)) {
-        if ($class = ctools_plugin_get_class($plugin, 'handler')) {
-          $cache->plugins[$plugin['name']] = $plugin;
-          $cache->plugins[$plugin['name']]['handler'] = new $class($plugin);
-          $cache->types[$plugin['type']][$plugin['name']] = $plugin['label'];
-        }
+      if (isset($info['types'][$plugin['type']]) && $class = ctools_plugin_get_class($plugin, 'handler')) {        
+        $cache->plugins[$plugin['name']] = $plugin;
+        $cache->plugins[$plugin['name']]['class'] = $class;
+        $cache->types[$plugin['type']][$plugin['name']] = $plugin['label'];
       }
     }
   }
   
   return $cache;
-}
-
-/**
- * Implementation of hook_form_FORM_ID_alter().
- */
-function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
-  if ($form['module']['#value'] == 'menu') {
-    $plugins = menu_token_get_plugins();
-    $options = $form['options']['#value'];
-    
-    // Replace fake path (<front>) with user inputed one.
-    if (!empty($options['menu_token_link_path'])) {
-      $form['link_path']['#default_value'] = $options['menu_token_link_path'];
-    }
-
-    $form['link_title']['#weight'] = -5;
-    $form['link_path']['#weight'] = -4;
-
-    $form['menu_token_enabled'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Use tokens in title and in path.'),
-      '#default_value' => !empty($options['menu_token_link_path']),
-      '#weight' => -3,
-    );
-
-    $form['menu_token_options'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Menu Token options'),
-      '#collapsible' => TRUE,
-      '#weight' => -2,
-      '#states' => array(
-        'visible' => array(
-          ':input[name="menu_token_enabled"]' => array('checked' => TRUE),
-        ),
-      ),
-    );
-    
-    foreach ($plugins->types as $type => $items) {
-      $info = token_get_info($type);
-      $default = NULL;
-      
-      if (isset($form_state['values']['menu_token_type_' . $type])) {
-        $default = $form_state['values']['menu_token_type_' . $type];
-      }
-      else if (!empty($options['menu_token_data'][$type])) {
-        $default = $options['menu_token_data'][$type]['handler'];
-      }
-      
-      $default = isset($default) && in_array($default, array_keys($items)) ? $default : NULL;
-
-      $form['menu_token_options'][$type] = array(
-        '#type' => 'container',
-      );
-
-      $form['menu_token_options'][$type]['menu_token_type_' . $type] = array(
-        '#type' => 'select',
-        '#title' => t('Method for') . ' ' . $info['name'],
-        '#description' => $info['description'],
-        '#options' => array('_none' => t('Disabled')),
-        '#default_value' => isset($default) ? $default : array('_none'),
-        '#ajax' => array(
-          'callback' => 'menu_token_method_callback',
-          'wrapper' => 'menu-token-method-options-' . $type,
-          'method' => 'replace',
-          'effect' => 'fade',
-        ),
-      );
-      
-      foreach ($items as $name => $label) {
-        $form['menu_token_options'][$type]['menu_token_type_' . $type]['#options'][$name] = $label;
-      }
-
-      $form['menu_token_options'][$type]['menu_token_method_options_wrapper'] = array(
-        '#type' => 'container',
-        '#prefix' => '<div id="menu-token-method-options-' . $type . '">',
-        '#suffix' => '</div>',
-      );
-
-      if (isset($default) && $plugin = menu_token_get_plugin($default)) {
-        if ($append = $plugin['handler']->form_options($form_state)) {
-          $form['menu_token_options'][$type]['menu_token_method_options_wrapper']['menu_token_method_options'] = array(
-            '#type' => 'fieldset',
-            '#title' => t('Method options'),
-            '#collapsible' => TRUE,
-          ) + $append;
-        }
-      }
-    }
-
-    // Create new fieldset
-    $form['menu_token_replacement_patterns'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Replacement patterns'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      '#weight' => -1,
-      '#states' => array(
-        'visible' => array(
-          ':input[name="menu_token_enabled"]' => array('checked' => TRUE),
-        ),
-      ),
-    );
-
-    $form['menu_token_replacement_patterns']['patterns'] = array(
-      '#theme' => 'token_tree',
-      '#token_types' => array_keys($plugins->types),
-    );
-    
-    // Add custom validation and submit functions.
-    array_unshift($form['#validate'], 'menu_token_form_menu_edit_item_validate');
-    array_unshift($form['#submit'], 'menu_token_form_menu_edit_item_submit');
-
-    foreach ($plugins->plugins as $name => $plugin) {
-      $plugin['handler']->form_alter($form, $form_state);
-    }
-  }
-}
-
-/**
- * Custom validation for form menu_edit_item.
- */
-function menu_token_form_menu_edit_item_validate($form, &$form_state) {
-  $values = &$form_state['values'];
-
-  // If token replacing is enabled and this is a custom menu item.
-  if ($values['module'] == 'menu' && !empty($values['menu_token_enabled'])) {
-    $plugins = menu_token_get_plugins();
-    
-    // Store the actual path in the options array.
-    $values['options']['menu_token_link_path'] = $values['link_path'];
-    $values['options']['menu_token_data'] = array();    
-    
-    foreach (array_keys($plugins->types) as $type) {
-      if (!empty($values['menu_token_type_' . $type]) && $values['menu_token_type_' . $type] != '_none') {
-        $plugin = $values['menu_token_type_' . $type];
-        if ($plugin = menu_token_get_plugin($plugin)) {
-          $values['options']['menu_token_data'][$type] = array(
-            'type' => $type,
-            'handler' => $plugin['name'],
-            'options' => array(),
-          );
-          
-          // Validate the form via the handler.
-          if ($output = $plugin['handler']->form_validate($form, $form_state)) {
-            $values['options']['menu_token_data'][$type]['options'] += $output;
-          }
-        }
-      }
-    }
-
-    // Substitute link_path with fake well known '<front>'.
-    $values['link_path'] = '<front>';
-  }
-  else {
-    // Use unset() rather than setting to empty string to avoid redundant
-    // serialized data being stored.
-    unset($values['options']['attributes']['menu_token_link_path'], $values['options']['menu_token_data']);
-  }
-}
-
-/**
- * Custom submit for form menu_edit_item.
- */
-function menu_token_form_menu_edit_item_submit($form, &$form_state) {
-  $values = &$form_state['values'];
-
-  // If token replacing is enabled and this is a custom menu item.
-  if ($values['module'] == 'menu' && !empty($values['menu_token_enabled'])) {
-    $plugins = menu_token_get_plugins();
-    
-    foreach (array_keys($plugins->types) as $type) {
-      if (!empty($values['menu_token_type_' . $type]) && $values['menu_token_type_' . $type] != '_none') {
-        $plugin = $values['menu_token_type_' . $type];
-        if ($plugin = menu_token_get_plugin($plugin)) {
-          // Validate the form via the handler.
-          if ($output = $plugin['handler']->form_submit($form, $form_state)) {
-            $values['options']['menu_token_data'][$type]['options'] += $output;
-          }
-        }
-      }
-    }
-  }
 }
 
 /**
@@ -341,11 +248,11 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
   if (empty($menu_admin) && isset($item['options']['menu_token_link_path'])) {
     $info = token_get_info();
     $data = array();
-
+    
     if (isset($item['options']['menu_token_data'])) {
       foreach ($item['options']['menu_token_data'] as $type => $options) {
-        if (!empty($info['types'][$type]) && $plugin = menu_token_get_plugin($options['handler'])) {
-          if ($object = $plugin['handler']->object_load($options['options'])) {
+        if (!empty($info['types'][$type]) && $handler = menu_token_get_handler($options['plugin'])) {
+          if ($object = $handler->object_load($options['options'])) {
             $data[$type] = $object;
           }
         }
@@ -390,27 +297,4 @@ function menu_token_menu_link_alter(&$item) {
     // Set 'alter' option to use hook_translated_menu_link().
     $item['options']['alter'] = TRUE;
   }
-}
-
-/**
- * Implementation hook_form_FORM_ID_alter().
- */
-function menu_token_form_menu_overview_form_alter(&$form, $form_state) {
-  foreach ($form as &$item) {
-    if (isset($item['mlid'], $item['#item']['options']) && isset($item['#item']['options']['menu_token_link_path'])) {
-      $item['title']['#markup'] .= theme('menu_token_uses_tokens');
-    }
-  }
-}
-
-/**
- * Ajax callback for the method select dropdown.
- */
-function menu_token_method_callback($form, $form_state) {
-  $parents = $form_state['triggering_element']['#array_parents'];
-
-  array_pop($parents);
-  array_push($parents, 'menu_token_method_options_wrapper');
-
-  return drupal_array_get_nested_value($form, $parents);
 }
