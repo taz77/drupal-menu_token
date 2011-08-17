@@ -1,6 +1,6 @@
 <?php
 
-class menu_token_node_user_defined implements menu_token_handler {
+class menu_token_term_user_defined implements menu_token_handler {
   function form_options($form_state) {
     $output['menu_token_node_user_defined'] = array(
       '#title' => t('Node ID'),
