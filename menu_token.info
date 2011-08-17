@@ -1,5 +1,6 @@
 name = Menu Token
-description = "Provides tokens in menu items (links)."
+description = Provides tokens in menu items (links).
 core = 7.x
 dependencies[] = token
+dependencies[] = ctools
 files[] = menu_token.test

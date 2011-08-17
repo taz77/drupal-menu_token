@@ -29,8 +29,8 @@ class MenuTokenTestCase extends DrupalWebTestCase {
   function testCreateMenuItem() {
     // Add new menu item.
     $edit = array(
-      'link_title'    => '[current-user:name]',
-      'link_path'     => 'user/[current-user:uid]',
+      'link_title' => '[current-user:name]',
+      'link_path' => 'user/[current-user:uid]',
       'token_enabled' => TRUE,
     );
     $this->drupalPost('admin/structure/menu/manage/user-menu/add', $edit, t('Save'));
