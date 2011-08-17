@@ -2,9 +2,9 @@
 
 class menu_token_term_user_defined implements menu_token_handler {
   function form_options($form_state) {
-    $output['menu_token_node_user_defined'] = array(
-      '#title' => t('Node ID'),
-      '#description' => t('The node id of the node that this token handler should load.'),
+    $output['menu_token_term_user_defined'] = array(
+      '#title' => t('Taxonomy term'),
+      '#description' => t('The name of the taxonomy term that this token handler should load.'),
       '#type' => 'textfield',
       '#default_value' => '',
     );
