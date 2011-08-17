@@ -176,14 +176,14 @@ function menu_token_get_handler($name) {
 }
 
 /**
- * Retrieves the handler of a menu token plugin.
+ * Retrieves a menu token plugin.
  *
  * @param $name
  *   The name of a plugin.
  *
  * @return
- *   A menu_token_handler object that represents the handler of the plugin
- *   defined by $name or FALSE if no plugin named $name exists.
+ *   An array containing information about the plugin as returned by the ctools
+ *   plugin API.
  */
 function menu_token_get_plugin($name) {
   $plugins = _menu_token_plugin_info()->plugins;
@@ -196,21 +196,22 @@ function menu_token_get_plugin($name) {
 }
 
 /**
- * @todo
+ * Retrieves a list of all available menu token plugins.
  */
 function menu_token_get_plugins() {
   return _menu_token_plugin_info()->plugins;
 }
 
 /**
- * @todo
+ * Retrieves a list of all token types that are covered by the available menu
+ * token plugins.
  */
 function menu_token_get_plugin_types() {
   return _menu_token_plugin_info()->types;
 }
 
 /**
- * @todo
+ * Builds and saves information about the menu token plugins and their types.
  */
 function _menu_token_plugin_info() {
   $cache = &drupal_static(__FUNCTION__);
