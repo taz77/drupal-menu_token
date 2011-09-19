@@ -25,7 +25,8 @@ function menu_token_theme() {
  * form.
  */
 function theme_menu_token_uses_tokens() {
-  return ' <span class="uses-tokens">(' . t('uses tokens') . ')</span>';
+  drupal_add_css(drupal_get_path('module', 'menu_token') . '/menu_token.css');
+  return ' <span class="uses-tokens">' . t('uses tokens') . '</span>';
 }
 
 
