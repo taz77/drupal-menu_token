@@ -83,7 +83,7 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
       );
 
       if (isset($default) && $handler = menu_token_get_handler($default)) {
-        if ($append = $handler->form_options($form_state)) {
+        if ($append = $handler->form_options($options['menu_token_data'][$type]['options'])) {
           $form['menu_token_options'][$type]['menu_token_method_options_wrapper']['menu_token_method_options'] = array(
             '#type' => 'fieldset',
             '#title' => t('Method options'),

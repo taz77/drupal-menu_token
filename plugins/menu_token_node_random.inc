@@ -1,7 +1,7 @@
 <?php
 
 class menu_token_node_random implements menu_token_handler {
-  function form_options($form_state) {
+  function form_options($options) {
     // Nothing to do here.
   }
 

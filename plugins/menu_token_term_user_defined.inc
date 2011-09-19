@@ -1,7 +1,7 @@
 <?php
 
 class menu_token_term_user_defined implements menu_token_handler {
-  function form_options($form_state) {
+  function form_options($options) {
     $output['menu_token_term_user_defined'] = array(
       '#title' => t('Taxonomy term'),
       '#description' => t('The name of the taxonomy term that this token handler should load.'),

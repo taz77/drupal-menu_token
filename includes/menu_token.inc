@@ -15,7 +15,7 @@ interface menu_token_handler {
    * The return value will be appended to the form as soon as the administrator
    * chooses your plugin.
    */
-  function form_options($form_state);
+  function form_options($options);
 
   /**
    * This function allows your plugin to act upon form submission. The return
