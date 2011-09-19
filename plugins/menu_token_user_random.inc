@@ -18,6 +18,18 @@ class menu_token_user_random implements menu_token_handler {
   }
 
   function object_load($options) {
-    // Nothing to do here.
+    $uid = db_select('users', 'u')
+        ->fields('u', array('uid'))
+        ->condition('uid', 0, '!=')
+        ->orderRandom()
+        ->range(0, 1)
+        ->execute()
+        ->fetchField(0);
+
+    if ($uid) {
+      return user_load($uid);
+    }
+
+    return FALSE;
   }
 }

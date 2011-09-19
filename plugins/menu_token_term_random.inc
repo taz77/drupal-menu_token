@@ -18,6 +18,17 @@ class menu_token_term_random implements menu_token_handler {
   }
 
   function object_load($options) {
-    // Nothing to do here.
+    $tid = db_select('taxonomy_term_data', 't')
+        ->fields('t', array('tid'))
+        ->orderRandom()
+        ->range(0, 1)
+        ->execute()
+        ->fetchField(0);
+
+    if ($tid) {
+      return taxonomy_term_load($tid);
+    }
+
+    return FALSE;
   }
 }
