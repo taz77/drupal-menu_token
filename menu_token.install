@@ -5,8 +5,9 @@
  * Install file for menu_token module.
  */
 
+
 /**
- * Implementation of hook_update_N().
+ * Implements hook_update_N().
  */
 function menu_token_update_7000(&$sandbox) {
   $schema['menu_token'] = array(
@@ -26,6 +27,7 @@ function menu_token_update_7000(&$sandbox) {
         'default' => '',
       ),
     ),
+
     'primary key' => array('mlid'),
   );
 
@@ -33,8 +35,9 @@ function menu_token_update_7000(&$sandbox) {
   db_create_table('menu_token', $schema['menu_token']);
 }
 
+
 /**
- * Implementation of hook_update_N().
+ * Implements hook_update_N().
  */
 function menu_token_update_7001(&$sandbox) {
 
@@ -66,12 +69,12 @@ function menu_token_update_7001(&$sandbox) {
   }
 }
 
+
 /**
- * Implementation of hook_update_N().
+ * Implements hook_update_N().
  */
 function menu_token_update_7002(&$sandbox) {
   if (!isset($sandbox['progress'])) {
-    $sandbox['#finished'] = 0;
     $sandbox['progress'] = 0;
     $sandbox['max'] = db_select('menu_token', 'mt')->countQuery()->execute()->fetchField();
   }

@@ -5,6 +5,7 @@
  * Contains the admin forms and form related functions.
  */
 
+
 /**
  * Implementation of hook_form_FORM_ID_alter().
  */
@@ -123,6 +124,7 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
   }
 }
 
+
 /**
  * Custom validation for form menu_edit_item.
  */
@@ -166,6 +168,7 @@ function menu_token_form_menu_edit_item_validate($form, &$form_state) {
   }
 }
 
+
 /**
  * Custom submit for form menu_edit_item.
  */
@@ -189,6 +192,7 @@ function menu_token_form_menu_edit_item_submit($form, &$form_state) {
   }
 }
 
+
 /**
  * Implementation hook_form_FORM_ID_alter().
  */
@@ -199,6 +203,7 @@ function menu_token_form_menu_overview_form_alter(&$form, $form_state) {
     }
   }
 }
+
 
 /**
  * Ajax callback for the method select dropdown.

@@ -1,5 +1,10 @@
 <?php
-// $Id$
+
+/**
+ * @file
+ * Menu Token tests.
+ */
+
 
 class MenuTokenTestCase extends DrupalWebTestCase {
   public $admin_user;
