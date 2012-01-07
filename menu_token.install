@@ -76,9 +76,11 @@ function menu_token_update_7001(&$sandbox) {
 function menu_token_update_7002(&$sandbox) {
   if (!isset($sandbox['progress'])) {
     $sandbox['progress'] = 0;
-    $sandbox['max'] = db_select('menu_token', 'mt')->countQuery()->execute()->fetchField();
+    if (db_table_exists('menu_token')) {
+      $sandbox['max'] = db_select('menu_token', 'mt')->countQuery()->execute()->fetchField();
+    }
   }
-  
+
   if (!empty($sandbox['max'])) {
     $tokens = db_select('menu_token', 'mt')
       ->fields('mt', array('mlid', 'link_path'))
@@ -109,14 +111,16 @@ function menu_token_update_7002(&$sandbox) {
     $sandbox['progress'] += 10;
   }
 
-  $sandbox['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+  $sandbox['#finished'] = empty($sandbox['max']) ? 1 : $sandbox['progress'] / $sandbox['max'];
 
   if ($sandbox['#finished'] >= 1) {
+    $sandbox['#finished'] = 1;
+
     // Drop the deprecated menu_token table if it exists.
     if (db_table_exists('menu_token')) {
       db_drop_table('menu_token');
     }
-    
+
     return t('The Menu Token module has been updated successfully.');
-  }  
+  }
 }
