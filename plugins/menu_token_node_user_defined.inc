@@ -13,12 +13,12 @@ class menu_token_node_user_defined implements menu_token_handler {
   }
 
   function form_submit($form, &$form_state) {
-    $options['nid'] = $form_state['input']['menu_token_node_user_defined'];
+    $options['nid'] = $form_state['values']['menu_token_node_user_defined'];
     return $options;
   }
 
   function form_validate($form, &$form_state) {
-    $nid = $form_state['input']['menu_token_node_user_defined'];
+    $nid = $form_state['values']['menu_token_node_user_defined'];
     if (!is_numeric($nid)) {
       form_set_error('menu_token_node_user_defined', t('Node ID should be numeric.'));
       return;
