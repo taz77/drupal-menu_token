@@ -459,6 +459,7 @@ function menu_token_form_menu_edit_item_validate($form, &$form_state) {
   // If token replacing is enabled and this is a custom menu item.
   if ($values['module'] == 'menu' && !empty($values['menu_token_enabled'])) {
     // Substitute link_path with fake well known '<front>'.
+    form_set_value(array('#parents' => array('options', 'menu_token_link_path')), $values['link_path'], $form_state);
     form_set_value(array('#parents' => array('link_path')), '<front>', $form_state);
     foreach (array_keys(menu_token_get_plugin_types()) as $type) {
       if (!empty($values['menu_token_type_' . $type]) && $values['menu_token_type_' . $type] != '_none') {
@@ -480,7 +481,6 @@ function menu_token_form_menu_edit_item_submit($form, &$form_state) {
   // If token replacing is enabled and this is a custom menu item
   if ($values['module'] == 'menu' && !empty($values['menu_token_enabled'])) {
     // Store the actual path in the options array.
-    form_set_value(array('#parents' => array('options', 'menu_token_link_path')), $values['link_path'], $form_state);
     form_set_value(array('#parents' => array('options', 'menu_token_data')), array(), $form_state);
     form_set_value(array('#parents' => array('options', 'menu_token_options', 'clear')), $values['menu_token_clear'], $form_state);
     foreach (array_keys(menu_token_get_plugin_types()) as $type) {
