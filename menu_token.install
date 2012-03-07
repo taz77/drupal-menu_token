@@ -5,7 +5,6 @@
  * Install file for menu_token module.
  */
 
-
 /**
  * Implements hook_update_N().
  */
@@ -34,7 +33,6 @@ function menu_token_update_7000(&$sandbox) {
   // Create schema.
   db_create_table('menu_token', $schema['menu_token']);
 }
-
 
 /**
  * Implements hook_update_N().
@@ -68,7 +66,6 @@ function menu_token_update_7001(&$sandbox) {
     variable_del('menu_token_enabled');
   }
 }
-
 
 /**
  * Implements hook_update_N().
