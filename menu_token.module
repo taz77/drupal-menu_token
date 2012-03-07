@@ -199,7 +199,8 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
 
     // Split url into parts and save in proper format.
     $url_parts = parse_url($url);
-    $item['href'] = $item['link_path'] = $item['router_path'] = $url_parts['path'];
+    $url = $url_parts['path'];
+    $item['href'] = $item['link_path'] = $item['router_path'] = $url;
     if (isset($url_parts['query'])) {
       $query = drupal_get_query_array($url_parts['query']);
       $item['localized_options']['query'] = $item['options']['query'] = $query;
@@ -208,8 +209,12 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
       $item['localized_options']['fragment'] = $item['options']['fragment'] = $url_parts['fragment'];
     }
 
-    // Load menu_item and check access.
-    if ($menu_item = menu_get_item($url_parts['path'])) {
+    if ($url == '<front>') {
+      $url = drupal_get_normal_path(variable_get('site_frontpage', 'node'));
+    }
+
+    // Load menu item and check access.
+    if ($menu_item = menu_get_item($url)) {
       $item['access'] = $menu_item['access'];
       return;
     }
@@ -342,7 +347,7 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
     $form['menu_token_enabled'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use tokens in title and in path.'),
-      '#default_value' => !empty($options['menu_token_link_path']),
+      '#default_value' => isset($options['menu_token_link_path']),
       '#weight' => -3,
     );
 
@@ -369,8 +374,6 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
         $default = $options['menu_token_data'][$type]['plugin'];
       }
 
-      $default = isset($default) && in_array($default, array_keys($items)) ? $default : NULL;
-
       $form['menu_token_options'][$type] = array(
         '#type' => 'container',
       );
@@ -380,7 +383,7 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
         '#title' => t('Method for') . ' ' . $info['name'],
         '#description' => $info['description'],
         '#options' => array('_none' => t('Disabled')),
-        '#default_value' => isset($default) ? $default : array('_none'),
+        '#default_value' => isset($default) && in_array($default, array_keys($items)) ? $default : array('_none'),
         '#ajax' => array(
           'callback' => 'menu_token_method_callback',
           'wrapper' => 'menu-token-method-options-' . $type,
@@ -410,7 +413,7 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
       }
     }
 
-    $form['menu_token_options']['clear'] = array(
+    $form['menu_token_options']['menu_token_clear'] = array(
       '#type' => 'checkbox',
       '#title' => t('Remove token if replacement is not present'),
       '#description' => t('If the replacement token is not available on the page being viewed, the token will be removed if checked.'),
@@ -452,42 +455,20 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
  * Custom validation for form menu_edit_item.
  */
 function menu_token_form_menu_edit_item_validate($form, &$form_state) {
-  $values = &$form_state['values'];
-
+  $values = $form_state['values'];
   // If token replacing is enabled and this is a custom menu item.
-  if ($values['module'] == 'menu' && !empty($values['menu_token_enabled'])) {
-    // Store the actual path in the options array.
-    $values['options']['menu_token_link_path'] = $values['link_path'];
-    $values['options']['menu_token_data'] = array();
-
+  if ($values['module'] == 'menu') {
     foreach (array_keys(menu_token_get_plugin_types()) as $type) {
       if (!empty($values['menu_token_type_' . $type]) && $values['menu_token_type_' . $type] != '_none') {
         $plugin = $values['menu_token_type_' . $type];
-
         if ($handler = menu_token_get_handler($plugin)) {
-          $values['options']['menu_token_data'][$type] = array(
-            'type' => $type,
-            'plugin' => $plugin,
-            'options' => array(),
-          );
-
           // Validate the form via the handler.
-          if ($output = $handler->form_validate($form, $form_state)) {
-            // We append the return value of the handler's form validator to
-            // the options array.
-            $values['options']['menu_token_data'][$type]['options'] += $output;
-          }
+          $handler->form_validate($form, $form_state);
         }
       }
     }
-
     // Substitute link_path with fake well known '<front>'.
     $values['link_path'] = '<front>';
-  }
-  else {
-    // Use unset() rather than setting to empty string to avoid redundant
-    // serialized data being stored.
-    unset($values['options']['attributes']['menu_token_link_path'], $values['options']['menu_token_data']);
   }
 }
 
@@ -496,25 +477,29 @@ function menu_token_form_menu_edit_item_validate($form, &$form_state) {
  */
 function menu_token_form_menu_edit_item_submit($form, &$form_state) {
   $values = &$form_state['values'];
-
-  // If token replacing is enabled and this is a custom menu item.
+  // If token replacing is enabled and this is a custom menu item
   if ($values['module'] == 'menu' && !empty($values['menu_token_enabled'])) {
+    // Store the actual path in the options array.
+    form_set_value(array('#parents' => array('options', 'menu_token_link_path')), $values['link_path'], $form_state);
+    form_set_value(array('#parents' => array('options', 'menu_token_data')), array(), $form_state);
+    form_set_value(array('#parents' => array('options', 'menu_token_options', 'clear')), $values['menu_token_clear'], $form_state);
     foreach (array_keys(menu_token_get_plugin_types()) as $type) {
       if (!empty($values['menu_token_type_' . $type]) && $values['menu_token_type_' . $type] != '_none') {
         $plugin = $values['menu_token_type_' . $type];
         if ($handler = menu_token_get_handler($plugin)) {
+          form_set_value(array('#parents' => array('options', 'menu_token_data', $type)), array('type' => $type, 'plugin' => $plugin, 'options' => array()), $form_state);
           // Validate the form via the handler.
           if ($output = $handler->form_submit($form, $form_state)) {
-            $values['options']['menu_token_data'][$type]['options'] += $output;
+            $output = $values['options']['menu_token_data'][$type]['options'] + $output;
+            form_set_value(array('#parents' => array('options', 'menu_token_data', $type, 'options')), $output, $form_state);
           }
         }
       }
     }
-    if (!empty($values['clear'])) {
-      $values['options']['menu_token_options']['clear'] = TRUE;
-    }
-    else {
-      $values['options']['menu_token_options']['clear'] = FALSE;
+  }
+  else {
+    foreach (array('menu_token_link_path', 'menu_token_data', 'menu_token_options') as $key) {
+      unset($values['options'][$key]);
     }
   }
 }
