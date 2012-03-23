@@ -179,6 +179,9 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
     $item['title'] = token_replace($item['title'], $data, $options);
     $url = token_replace($item['options']['menu_token_link_path'], $data, $options);
 
+    // Make sure aliases proccessed correctly
+    $url = drupal_get_normal_path($url);
+
     // Override active trail if showing front page but translated link is not to
     // front page.
     // NOTE: This relies on any parent of a tokenised menu item having "option"
