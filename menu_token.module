@@ -180,6 +180,7 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
     $url = token_replace($item['options']['menu_token_link_path'], $data, $options);
 
     // Make sure aliases are proccessed correctly
+    $url = trim($url, '/');
     $url = drupal_get_normal_path($url);
 
     // Override active trail if showing front page but translated link is not to
