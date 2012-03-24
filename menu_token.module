@@ -168,6 +168,12 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
     return;
   }
 
+  // Prevent infinite-looping.
+  static $need_to_load_again;
+  if (isset($need_to_load_again[$item['mlid']])) {
+    return;
+  }
+
   // Check whether we should replace the path.
   if (empty($menu_admin) && isset($item['options']['menu_token_link_path'])) {
     $info = token_get_info();
@@ -228,6 +234,11 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
 
     if ($url == '<front>') {
       $url = drupal_get_normal_path(variable_get('site_frontpage', 'node'));
+    }
+
+    // Register translated item
+    if ($_GET['q'] == $item['link_path']) {
+      $need_to_load_again[$item['mlid']] = TRUE;
     }
 
     // Load menu item and check access.
