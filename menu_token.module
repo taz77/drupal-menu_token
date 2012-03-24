@@ -156,6 +156,18 @@ function menu_token_menu_token_plugins() {
 function menu_token_translated_menu_link_alter(&$item, $map) {
   global $menu_admin;
 
+  // Check cache
+  static $cache;
+  if (isset($cache[$item['mlid']])) {
+    $old_item = $item;
+    $item = $cache[$item['mlid']];
+    // recover in_active_trail state if $item is a navigation link
+    if (isset($old_item['in_active_trail'])) {
+      $item['in_active_trail'] = $old_item['in_active_trail'];
+    }
+    return;
+  }
+
   // Check whether we should replace the path.
   if (empty($menu_admin) && isset($item['options']['menu_token_link_path'])) {
     $info = token_get_info();
@@ -198,6 +210,7 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
     // Check whether path is external.
     if (url_is_external($url)) {
       $item['href'] = $item['link_path'] = $url;
+      $cache[$item['mlid']] = $item;
       return;
     }
 
@@ -220,10 +233,13 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
     // Load menu item and check access.
     if ($menu_item = menu_get_item($url)) {
       $item['access'] = $menu_item['access'];
+      $cache[$item['mlid']] = $item;
       return;
     }
 
+    // The $item has an invalid $url, prevent access to it
     $item['access'] = FALSE;
+    $cache[$item['mlid']] = $item;
   }
 }
 
