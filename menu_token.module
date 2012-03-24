@@ -151,7 +151,7 @@ function menu_token_menu_token_plugins() {
 }
 
 /**
- * Implements of hook_translated_menu_link().
+ * Implements hook_translated_menu_link_alter().
  */
 function menu_token_translated_menu_link_alter(&$item, $map) {
   global $menu_admin;
@@ -259,7 +259,7 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
  */
 function menu_token_menu_link_alter(&$item) {
   if (isset($item['options']['menu_token_link_path'])) {
-    // Set 'alter' option to use hook_translated_menu_link().
+    // Set 'alter' option to use hook_translated_menu_link_alter().
     $item['options']['alter'] = TRUE;
   }
 }
