@@ -41,110 +41,43 @@ function menu_token_ctools_plugin_type() {
  */
 function menu_token_menu_token_plugins() {
   $plugins = array();
+  $entity_info = entity_get_info();
 
-  if (module_exists('node')) {
-    $plugins['node_context'] = array(
-      'type' => 'node',
-      'label' => t('Node from context'),
-      'description' => t('Picks a node from the current context.'),
-      'handler' => array(
-        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
-        'file' => 'menu_token_node_context.inc',
-        'class' => 'menu_token_node_context',
-      ),
-    );
+  foreach (variable_get('menu_token_entities', array('node', 'user')) as $entity => $enabled) {
+    if ($enabled) {
+      $plugins["{$entity}_context"] = array(
+        'type' => $entity,
+        'label' => t('@entity_label from context', array('@entity_label' => $entity_info[$entity]['label'])),
+        'description' => t('Picks a @entity_label from the current context.', array('@entity_label' => $entity_info[$entity]['label'])),
+        'handler' => array(
+          'path' => drupal_get_path('module', 'menu_token') . '/plugins',
+          'file' => 'menu_token_entity_context.inc',
+          'class' => 'menu_token_entity_context',
+        ),
+      );
 
-    $plugins['node_random'] = array(
-      'type' => 'node',
-      'label' => t('Random node'),
-      'description' => t('Picks a random node from the database.'),
-      'handler' => array(
-        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
-        'file' => 'menu_token_node_random.inc',
-        'class' => 'menu_token_node_random',
-      ),
-    );
+      $plugins["{$entity}_random"] = array(
+        'type' => $entity,
+        'label' => t('Random @entity_label', array('@entity_label' => $entity_info[$entity]['label'])),
+        'description' => t('Picks a random @entity_label from the database.', array('@entity_label' => $entity_info[$entity]['label'])),
+        'handler' => array(
+          'path' => drupal_get_path('module', 'menu_token') . '/plugins',
+          'file' => 'menu_token_entity_random.inc',
+          'class' => 'menu_token_entity_random',
+        ),
+      );
 
-    $plugins['node_user_defined'] = array(
-      'type' => 'node',
-      'label' => t('User-defined node'),
-      'description' => t('Uses a user-defined node id to retrieve the node object.'),
-      'handler' => array(
-        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
-        'file' => 'menu_token_node_user_defined.inc',
-        'class' => 'menu_token_node_user_defined',
-      ),
-    );
-  }
-
-  if (module_exists('user')) {
-    $plugins['user_context'] = array(
-      'type' => 'user',
-      'label' => t('User from context'),
-      'description' => t('Picks a user from the current context.'),
-      'handler' => array(
-        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
-        'file' => 'menu_token_user_context.inc',
-        'class' => 'menu_token_user_context',
-      ),
-    );
-
-    $plugins['user_random'] = array(
-      'type' => 'user',
-      'label' => t('Random user'),
-      'description' => t('Picks a random user from the database.'),
-      'handler' => array(
-        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
-        'file' => 'menu_token_user_random.inc',
-        'class' => 'menu_token_user_random',
-      ),
-    );
-
-    $plugins['user_user_defined'] = array(
-      'type' => 'user',
-      'label' => t('User-defined user'),
-      'description' => t('Uses a user-defined user name to retrieve the user object.'),
-      'handler' => array(
-        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
-        'file' => 'menu_token_user_user_defined.inc',
-        'class' => 'menu_token_user_user_defined',
-      ),
-    );
-  }
-
-  if (module_exists('taxonomy')) {
-    $plugins['term_context'] = array(
-      'type' => 'term',
-      'label' => t('Taxonomy term from context'),
-      'description' => t('Picks a taxonomy term from the current context.'),
-      'handler' => array(
-        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
-        'file' => 'menu_token_term_context.inc',
-        'class' => 'menu_token_term_context',
-      ),
-    );
-
-    $plugins['term_random'] = array(
-      'type' => 'term',
-      'label' => t('Random taxonomy term'),
-      'description' => t('Picks a random taxonomy term from the one of the defined vocabularies.'),
-      'handler' => array(
-        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
-        'file' => 'menu_token_term_random.inc',
-        'class' => 'menu_token_term_random',
-      ),
-    );
-
-    $plugins['term_user_defined'] = array(
-      'type' => 'term',
-      'label' => t('User-defined taxonomy term'),
-      'description' => t('Uses a user-defined term to retrieve the taxonomy term object.'),
-      'handler' => array(
-        'path' => drupal_get_path('module', 'menu_token') . '/plugins',
-        'file' => 'menu_token_term_user_defined.inc',
-        'class' => 'menu_token_term_user_defined',
-      ),
-    );
+      $plugins["{$entity}_user_defined"] = array(
+        'type' => $entity,
+        'label' => t('User-defined @entity_label', array('@entity_label' => $entity_info[$entity]['label'])),
+        'description' => t('Uses a user-defined @entity_label.', array('@entity_label' => $entity_info[$entity]['label'])),
+        'handler' => array(
+          'path' => drupal_get_path('module', 'menu_token') . '/plugins',
+          'file' => 'menu_token_entity_user_defined.inc',
+          'class' => 'menu_token_entity_user_defined',
+        ),
+      );
+    }
   }
 
   return $plugins;
@@ -183,6 +116,7 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
     if (isset($item['options']['menu_token_data'])) {
       foreach ($item['options']['menu_token_data'] as $type => $values) {
         if (!empty($info['types'][$type]) && $handler = menu_token_get_handler($values['plugin'])) {
+          $values['options']['_type'] = $type;
           if ($object = $handler->object_load($values['options'])) {
             $data[$type] = $object;
           }
@@ -497,6 +431,7 @@ function menu_token_form_menu_edit_item_validate($form, &$form_state) {
         $plugin = $values['menu_token_type_' . $type];
         if ($handler = menu_token_get_handler($plugin)) {
           // Validate the form via the handler.
+          $form_state['_menu_token_entity_type'] = $type;
           $handler->form_validate($form, $form_state);
         }
       }
