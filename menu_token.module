@@ -598,3 +598,14 @@ interface menu_token_handler {
    */
   function object_load($options);
 }
+
+/**
+ * Implements hook_permission().
+ */
+function menu_token_permission() {
+  return array(
+    'administer menu_token' => array(
+      'title' => t('Administer Menu Token'),
+    ),
+  );
+}
