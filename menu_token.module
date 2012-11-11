@@ -609,3 +609,21 @@ function menu_token_permission() {
     ),
   );
 }
+
+/**
+ * Implements hook_menu().
+ */
+function menu_token_menu() {
+  $items = array();
+
+  $items['admin/config/menu_token'] = array(
+    'title' => 'Menu Token',
+    'description' => 'Configure the Menu Token module.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('menu_token_settings_form'),
+    'access arguments' => array('administer menu_token'),
+    'file' => 'menu_token.admin.inc',
+  );
+
+  return $items;
+}
