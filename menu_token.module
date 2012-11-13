@@ -42,8 +42,9 @@ function menu_token_ctools_plugin_type() {
 function menu_token_menu_token_plugins() {
   $plugins = array();
   $entity_info = entity_get_info();
+  $entities = variable_get('menu_token_entities', drupal_map_assoc(array('node', 'user')));
 
-  foreach (variable_get('menu_token_entities', array('node', 'user')) as $entity => $enabled) {
+  foreach ($entities as $entity => $enabled) {
     if ($enabled) {
       $plugins["{$entity}_context"] = array(
         'type' => $entity,
