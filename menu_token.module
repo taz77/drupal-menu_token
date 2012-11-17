@@ -312,7 +312,8 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
 
     $form['menu_token_enabled'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Use tokens in title and in path.'),
+      '#title' => t('<strong>Use tokens</strong> in title and in path.'),
+      '#description' => t('Active this option in order to use Menu token.'),
       '#default_value' => isset($options['menu_token_link_path']),
       '#weight' => -3,
     );
@@ -390,8 +391,7 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
     $form['menu_token_replacement_patterns'] = array(
       '#type' => 'fieldset',
       '#title' => t('Replacement patterns'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
+      '#collapsible' => FALSE,
       '#weight' => -1,
       '#states' => array(
         'visible' => array(
@@ -403,6 +403,7 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
     $form['menu_token_replacement_patterns']['patterns'] = array(
       '#theme' => 'token_tree',
       '#token_types' => array_keys($types),
+      '#dialog' => TRUE,
     );
 
     // Add custom validation and submit functions.
