@@ -6,9 +6,9 @@
  */
 
 /**
- * Implements hook_schema().
+ * Implements hook_update_N().
  */
-function menu_token_schema() {
+function menu_token_update_7000(&$sandbox) {
   $schema['menu_token'] = array(
     'description' => t('Menu token properties'),
     'fields' => array (
@@ -30,14 +30,7 @@ function menu_token_schema() {
     'primary key' => array('mlid'),
   );
 
-  return $schema;
-}
-
-/**
- * Implements hook_update_N().
- */
-function menu_token_update_7000(&$sandbox) {
-  // Don't delete/rename this function!
+  db_create_table('menu_token', $schema['menu_token']);
 }
 
 /**
