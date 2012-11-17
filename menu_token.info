@@ -5,3 +5,4 @@ dependencies[] = menu
 dependencies[] = token
 dependencies[] = ctools
 files[] = menu_token.test
+configure = admin/config/menu_token

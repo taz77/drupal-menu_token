@@ -120,3 +120,17 @@ function menu_token_update_7002(&$sandbox) {
     return t('The Menu Token module has been updated successfully.');
   }
 }
+
+/**
+ * Implements hook_uninstall().
+ */
+function menu_token_uninstall() {
+  $result = db_select('variable', 'v')
+    ->fields('v', array('name'))
+    ->condition('name', 'menu_token_%', '=')
+    ->execute();
+
+  foreach ($result as $row) {
+    variable_del($row->name);
+  }
+}
