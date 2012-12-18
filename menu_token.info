@@ -1,3 +1,8 @@
 name = Menu Token
-description = "Provides tokens in menu items(links)."
-dependencies = token
+description = Provides tokens in menu items (links).
+core = 8.x
+dependencies[] = menu
+dependencies[] = token
+dependencies[] = ctools
+files[] = menu_token.test
+configure = admin/config/menu_token
