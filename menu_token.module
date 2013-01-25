@@ -90,21 +90,7 @@ function menu_token_menu_token_plugins() {
 function menu_token_translated_menu_link_alter(&$item, $map) {
   global $menu_admin;
 
-  // Check cache
-  static $cache;
-  if (isset($cache[$item['mlid']])) {
-    $old_item = $item;
-    $item = $cache[$item['mlid']];
-    // recover in_active_trail state if $item is a navigation link
-    if (isset($old_item['in_active_trail'])) {
-      $item['in_active_trail'] = $old_item['in_active_trail'];
-    }
-    return;
-  }
-
-  // Prevent infinite-looping.
-  static $need_to_load_again;
-  if (isset($need_to_load_again[$item['mlid']])) {
+  if (!_menu_token_is_called_from_features()) {
     return;
   }
 
@@ -151,7 +137,6 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
     // Check whether path is external.
     if (url_is_external($url)) {
       $item['href'] = $item['link_path'] = $url;
-      $cache[$item['mlid']] = $item;
       return;
     }
 
@@ -171,21 +156,13 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
       $url = drupal_get_normal_path(variable_get('site_frontpage', 'node'));
     }
 
-    // Register translated item
-    if ($_GET['q'] == $item['link_path']) {
-      $need_to_load_again[$item['mlid']] = TRUE;
-    }
-
     // Load menu item and check access.
     if ($menu_item = menu_get_item($url)) {
       $item['access'] = $menu_item['access'];
-      $cache[$item['mlid']] = $item;
       return;
     }
 
-    // The $item has an invalid $url, prevent access to it
     $item['access'] = FALSE;
-    $cache[$item['mlid']] = $item;
   }
 }
 
@@ -194,9 +171,27 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
  */
 function menu_token_menu_link_alter(&$item) {
   if (isset($item['options']['menu_token_link_path'])) {
-    // Set 'alter' option to use hook_translated_menu_link_alter().
-    $item['options']['alter'] = TRUE;
+    // Set 'alter' option to use hook_translated_menu_link_alter()
+    // Only alter if not called from within menu_links_features_export_render
+    $item['options']['alter'] = _menu_token_is_called_from_features();
   }
+}
+
+/**
+ * Returns TRUE if 'menu_links_features_export_render' is in the callstack.
+ */
+function _menu_token_is_called_from_features() {
+  $called = &drupal_static(__FUNCTION__);
+  if (!isset($called)) {
+    $callstack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+    foreach($callstack as $function) {
+      $called = ($function['function'] == 'menu_links_features_export_render');
+      if ($called) {
+        break;
+      }
+    }
+  }
+  return !$called;
 }
 
 /**
@@ -302,8 +297,12 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
     $types = menu_token_get_plugin_types();
     $options = $form['options']['#value'];
 
-    // Replace fake path (<front>) with user inputed one.
+    // Replace fake path (/menutoken/ouruid) with user inputed one.
     if (!empty($options['menu_token_link_path'])) {
+      $form['menu_token_uuid'] = array(
+        '#type' => 'hidden',
+        '#value' => $form['link_path']['#default_value'],
+      );
       $form['link_path']['#default_value'] = $options['menu_token_link_path'];
     }
 
@@ -425,9 +424,16 @@ function menu_token_form_menu_edit_item_validate($form, &$form_state) {
   $values = $form_state['values'];
   // If token replacing is enabled and this is a custom menu item.
   if ($values['module'] == 'menu' && !empty($values['menu_token_enabled'])) {
-    // Substitute link_path with fake well known '<front>'.
+    // Substitute link_path with our own unique menu path. This will make sure features will export our menu items.
     form_set_value(array('#parents' => array('options', 'menu_token_link_path')), $values['link_path'], $form_state);
     form_set_value(array('#parents' => array('link_path')), '<front>', $form_state);
+    if (!empty($values['menu_token_uuid'])) {
+      // If a uuid already exists, dont change it
+      form_set_value(array('#parents' => array('link_path')), $values['menu_token_uuid'], $form_state);
+    }
+    else {
+      form_set_value(array('#parents' => array('link_path')), 'menutoken/' . uniqid(), $form_state);
+    }
     foreach (array_keys(menu_token_get_plugin_types()) as $type) {
       if (!empty($values['menu_token_type_' . $type]) && $values['menu_token_type_' . $type] != '_none') {
         $plugin = $values['menu_token_type_' . $type];
@@ -552,6 +558,12 @@ function menu_token_permission() {
  */
 function menu_token_menu() {
   $items = array();
+
+  $items['menutoken/%'] = array(
+    'title' => "Dummy Menu Token item",
+    'access callback' => TRUE,
+    'page callback' => 'theme_menu_token_uses_tokens',
+  );
 
   $items['admin/config/menu_token'] = array(
     'title' => 'Menu Token',

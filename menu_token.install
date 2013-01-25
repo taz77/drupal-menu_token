@@ -131,6 +131,29 @@ function menu_token_update_7003() {
 }
 
 /**
+ * Migrate menu items link path, from '<front>' to 'menutoken/[uuid]'.
+ */
+function menu_token_update_7004() {
+  $result = db_select('menu_links', 'm')
+    ->fields('m', array('mlid', 'options'))
+    ->condition('link_path', '<front>')
+    ->execute();
+
+  foreach ($result as $menu_link) {
+    $options = unserialize($menu_link->options);
+    if (isset($options['menu_token_data'])) {
+      db_update('menu_links')
+        ->fields(array(
+          'link_path' => 'menutoken/' . uniqid(),
+          'router_path' => 'menutoken/%',
+        ))
+        ->condition('mlid', $menu_link->mlid)
+        ->execute();
+    }
+  }
+} 
+
+/**
  * Implements hook_uninstall().
  */
 function menu_token_uninstall() {
