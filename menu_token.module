@@ -183,12 +183,19 @@ function menu_token_menu_link_alter(&$item) {
 function _menu_token_is_called_from_features() {
   $called = &drupal_static(__FUNCTION__);
   if (!isset($called)) {
-    $callstack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-    foreach($callstack as $function) {
-      $called = ($function['function'] == 'menu_links_features_export_render');
-      if ($called) {
-        break;
+    if (module_exists('features')) {
+      // Save memory in the debug_backtrace() function when possible
+      $options = (version_compare(PHP_VERSION, '5.3.6', '>=') ? DEBUG_BACKTRACE_IGNORE_ARGS : NULL);
+      $callstack = debug_backtrace($options);
+      foreach($callstack as $function) {
+        $called = ($function['function'] == 'menu_links_features_export_render');
+        if ($called) {
+          break;
+        }
       }
+    }
+    else {
+      $called = FALSE;
     }
   }
   return !$called;
