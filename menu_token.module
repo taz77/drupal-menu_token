@@ -192,7 +192,7 @@ function _menu_token_is_called_from_features() {
   if (!isset($called)) {
     if (module_exists('features')) {
       // Save memory in the debug_backtrace() function when possible
-      if (version_compare(PHP_VERSION, '5.3.6', '>=') {
+      if (version_compare(PHP_VERSION, '5.3.6', '>=')) {
         $callstack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
       }
       else {
