@@ -317,7 +317,8 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
     if (!empty($options['menu_token_link_path']) && !empty($options['menu_token_link_uuid'])) {
       $form['menu_token_uuid'] = array(
         '#type' => 'hidden',
-        '#value' => $options['menu_token_link_uuid'],
+        '#value' => substr($form['link_path']['#default_value'], 0, 10) == 'menutoken/'
+                      ? $form['link_path']['#default_value'] : '',
       );
       $form['link_path']['#default_value'] = $options['menu_token_link_path'];
     }
