@@ -156,7 +156,9 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
     if (isset($url_parts['fragment'])) {
       $item['localized_options']['fragment'] = $item['options']['fragment'] = $url_parts['fragment'];
     }
-
+    if (!isset($item['localized_options'])) {
+      $item['localized_options'] = array();
+    }
     if ($url == '<front>') {
       $url = drupal_get_normal_path(variable_get('site_frontpage', 'node'));
     }
