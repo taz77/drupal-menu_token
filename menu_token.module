@@ -188,8 +188,12 @@ function _menu_token_is_called_from_features() {
   if (!isset($called)) {
     if (module_exists('features')) {
       // Save memory in the debug_backtrace() function when possible
-      $options = (version_compare(PHP_VERSION, '5.3.6', '>=') ? DEBUG_BACKTRACE_IGNORE_ARGS : NULL);
-      $callstack = debug_backtrace($options);
+      if (version_compare(PHP_VERSION, '5.3.6', '>=') {
+        $callstack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+      }
+      else {
+        $callstack = debug_backtrace();
+      }
       foreach($callstack as $function) {
         $called = ($function['function'] == 'menu_links_features_export_render');
         if ($called) {
