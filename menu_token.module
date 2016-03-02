@@ -114,6 +114,7 @@ function menu_token_translated_menu_link_alter(&$item, $map) {
     }
 
     $options['clear'] = !empty($item['options']['menu_token_options']['clear']) ? TRUE : FALSE;
+    $options['sanitize'] = FALSE;
 
     // Store the UUID link path.
     $item['options']['menu_token_link_uuid'] = $item['link_path'];
