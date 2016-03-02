@@ -318,10 +318,13 @@ function menu_token_form_menu_edit_item_alter(&$form, &$form_state) {
 
     // Replace fake path (/menutoken/ouruid) with user inputed one.
     if (!empty($options['menu_token_link_path']) && !empty($options['menu_token_link_uuid'])) {
+      // If the input token is current-user, then return it to the fake path.
+      if (strpos($options['menu_token_link_path'], 'current-user') !== FALSE) {
+        $form['link_path']['#default_value'] = 'menutoken/' . uniqid();
+      }
       $form['menu_token_uuid'] = array(
         '#type' => 'hidden',
-        '#value' => substr($form['link_path']['#default_value'], 0, 10) == 'menutoken/'
-                      ? $form['link_path']['#default_value'] : '',
+        '#value' => $form['link_path']['#default_value'],
       );
       $form['link_path']['#default_value'] = $options['menu_token_link_path'];
     }
