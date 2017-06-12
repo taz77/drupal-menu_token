@@ -1,0 +1,6 @@
+services:
+  menu_token.route_subscriber:
+    class: Drupal\menu_token\Routing\MenuTokenRouteSubscriber
+    tags:
+      - { name: event_subscriber }
+
