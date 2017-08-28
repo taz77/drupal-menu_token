@@ -27,7 +27,7 @@ class LinkConfigurationStorageListBuilder extends ConfigEntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity) {
-    /** @var LinkConfigurationStorage $entity */
+
     $row['label'] = $entity->label();
     $row['id'] = $entity->id();
     $row['linkid'] = $entity->linkid;
