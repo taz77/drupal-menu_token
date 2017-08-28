@@ -66,6 +66,17 @@ function menu_token_form_menu_link_content_menu_link_content_form_alter(&$form, 
     $linkWeight = -2;
   }
 
+  if (empty($configArray['menu_token_enabled'])) {
+
+    $configArray['menu_token_enabled'] = 0;
+  }
+
+  if (empty($configArray['remove_if_replacement_is_not_present'])) {
+
+    $configArray['remove_if_replacement_is_not_present'] = 0;
+  }
+
+
   $form['menu_token_enabled'] = [
     '#type' => 'checkbox',
     '#title' => t('<strong>Use tokens</strong> in title and in path.'),
