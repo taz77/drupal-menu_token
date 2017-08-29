@@ -365,6 +365,7 @@ function menu_token_form_submit($form, &$form_state) {
   }
 }
 
+
 /**
  * {@inheritdoc}
  */
@@ -379,11 +380,12 @@ function menu_token_get_string_between($string, $start, $end) {
   return substr($string, $ini, $len);
 }
 
+
+
 /**
  * {@inheritdoc}
  */
-function menu_token_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
-
+function menu_token_tokens($tokenType, $tokenArray, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
 
   if (!empty($data['configuration_array'])) {
 
@@ -397,127 +399,97 @@ function menu_token_tokens($type, $tokens, array $data, array $options, Bubbleab
     $removeIfNotPresent = !empty($data['remove_if_replacement_is_not_present']) &&
       $data['remove_if_replacement_is_not_present'] == 1;
 
-    $replacements = [];
 
-    // Remove strange types.
-    if (!array_key_exists($type, $tokens)) {
+    $entityType = \Drupal::service('token.entity_mapper')->getEntityTypeForTokenType($tokenType);
 
-      foreach ($tokens as $key => $t) {
-        // Is this type even supported by my type.
-        if ($removeIfNotPresent) {
-          $replacements[$tokens[$key]] = '';
-        }
-      }
-    }
+    if (!empty($data[$entityType][0])) {
+      // Make type agnostic so it can handle any type.
+      switch ($data[$entityType][0]) {
+        // Nothing to do.
+        case "none":
 
+          $replacement = [array_pop($tokenArray) => ''];
 
-    foreach ($tokens as $key => $t) {
+          break;
 
-      // Fist I must know what I have.
-      $scan = $token_service->scan($t);
-      $type = key($scan);
+        case "context":
 
-      if (!empty($data[$type][0])) {
-        // Make type agnostic so it can handle any type.
-        switch ($data[$type][0]) {
+          $contextsDef = \Drupal::service('context.repository')->getAvailableContexts();
+          $realC = \Drupal::service('context.repository')->getRuntimeContexts(array_keys($contextsDef));
 
-          // Nothing to do.
-          case "none":
-            break;
+          foreach ($realC as $keyI => $realCI) {
 
-          case "context":
+            $contextDataDefinitionType = $realCI->getContextData()->getPluginDefinition();
+            $value = $realCI->getContextData()->getValue();
 
-            $contextsDef = \Drupal::service('context.repository')->getAvailableContexts();
-            $realC = \Drupal::service('context.repository')->getRuntimeContexts(array_keys($contextsDef));
+            if ($contextDataDefinitionType["id"] == "entity" && method_exists($value, "getEntityTypeId") && $value->getEntityTypeId() == $entityType) {
 
-            try {
+              if (!empty($value)) {
+                $rVar = $value;
 
-              // Default value is always one.
-              $rVar = \Drupal::entityTypeManager()->getStorage($type)
-                ->load(1);
-            }
-            catch (Exception $e) {
-              $rVar = "";
-            }
-
-            foreach ($realC as $keyI => $realCI) {
-
-              if ($type === menu_token_get_string_between($keyI, "@", ".")) {
-
-                $value = $realCI->getContextData()->getValue();
-                if (!empty($value)) {
-                  $rVar = $value;
-                  break;
+                if (is_array($rVar)) {
+                  $rVar = array_pop($rVar);
                 }
+
+                $replacement = $token_service->generate($tokenType, $tokenArray, [$tokenType => $rVar], [], new BubbleableMetadata());
+                break;
               }
             }
+          }
+          if (empty($replacement) && $removeIfNotPresent) {
 
-            $g = $token_service->generate($type, [$key => $t], [$type => $rVar], [], new BubbleableMetadata());
+            $replacement = [array_pop($tokenArray) => ''];
+          }
 
-            if (empty($g)) {
+          break;
 
-              $g = [$t => ''];
-            }
+        case "random":
 
-            if (empty($g) && $removeIfNotPresent) {
+          $query = \Drupal::entityQuery($entityType);
+          $userIds = $query->execute();
 
-              $g = [$t => ''];
-            }
+          // Pick one random user.
+          $randomId = array_rand($userIds, 1);
 
-            $replacements = array_merge($replacements, $g);
-            break;
+          $randomVar = \Drupal::entityTypeManager()->getStorage($entityType)
+            ->load($randomId);
 
-          case "random":
-
-            $query = \Drupal::entityQuery($type);
-            $userIds = $query->execute();
-
-            // Pick one random user.
-            $randomId = array_rand($userIds, 1);
-
-            $randomVar = \Drupal::entityTypeManager()->getStorage($type)
-              ->load($randomId);
-
-            $g = $token_service->generate($type, [$key => $t], [$type => $randomVar], [], new BubbleableMetadata());
+          $replacement = $token_service->generate($tokenType, $tokenArray, [$tokenType => $randomVar], [], new BubbleableMetadata());
 
 
-            if (empty($g) && $removeIfNotPresent) {
+          if (empty($g) && $removeIfNotPresent) {
 
-              $g = [$t => ''];
-            }
+            $replacement = [array_pop($tokenArray) => ''];
+          }
 
-            $replacements = array_merge($replacements, $g);
 
-            break;
+          break;
 
-          case "user_defined":
+        case "user_defined":
 
-            $adminDefinedVariable = $data[$type][1];
+          $adminDefinedVariable = $data[$tokenType][1];
 
-            $dynamicVar = \Drupal::entityTypeManager()->getStorage($type)
-              ->load($adminDefinedVariable);
+          $dynamicVar = \Drupal::entityTypeManager()->getStorage($entityType)
+            ->load($adminDefinedVariable);
 
-            $g = $token_service->generate($type, [$key => $t], [$type => $dynamicVar], [], new BubbleableMetadata());
+          $replacement = $token_service->generate($tokenType, $tokenArray, [$tokenType => $dynamicVar], [], new BubbleableMetadata());
 
-            if (empty($g) && $removeIfNotPresent) {
+          if (empty($g) && $removeIfNotPresent) {
 
-              $g = [$t => ''];
-            }
+            $replacement = [array_pop($tokenArray) => ''];
 
-            $replacements = array_merge($replacements, $g);
+          }
 
-            break;
+          break;
 
-          default:
-            break;
-
-        }
+        default:
+          break;
 
       }
 
     }
 
-    return $replacements;
+    return $replacement;
 
   }
 }
