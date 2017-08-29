@@ -422,6 +422,23 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
             $contextDataDefinitionType = $realCI->getContextData()->getPluginDefinition();
             $value = $realCI->getContextData()->getValue();
 
+            // If value is empty and there is no context.
+            // We use first value just to make menu system work.
+            if (empty($value)) {
+
+              try {
+
+                // Default value is always one.
+                $value = \Drupal::entityTypeManager()->getStorage($entityType)
+                  ->load(1);
+              }
+              catch (Exception $e) {
+                $value = "";
+              }
+
+            }
+
+
             if ($contextDataDefinitionType["id"] == "entity" && method_exists($value, "getEntityTypeId") && $value->getEntityTypeId() == $entityType) {
 
               if (!empty($value)) {
@@ -457,7 +474,7 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
           $replacement = $token_service->generate($tokenType, $tokenArray, [$tokenType => $randomVar], [], new BubbleableMetadata());
 
 
-          if (empty($g) && $removeIfNotPresent) {
+          if (empty($replacement) && $removeIfNotPresent) {
 
             $replacement = [array_pop($tokenArray) => ''];
           }
@@ -474,7 +491,7 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
 
           $replacement = $token_service->generate($tokenType, $tokenArray, [$tokenType => $dynamicVar], [], new BubbleableMetadata());
 
-          if (empty($g) && $removeIfNotPresent) {
+          if (empty($$replacement) && $removeIfNotPresent) {
 
             $replacement = [array_pop($tokenArray) => ''];
 
