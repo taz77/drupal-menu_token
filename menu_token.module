@@ -313,7 +313,8 @@ function menu_token_form_submit($form, &$form_state) {
     $titleTokens = $token_service->scan($values['title'][0]['value']);
     $uriTokens = $token_service->scan($values['link'][0]['uri']);
 
-    $allTokens = array_unique(array_merge($titleTokens, $uriTokens));
+    $merged = array_merge($titleTokens, $uriTokens);
+    $allTokens = array_unique($merged, SORT_REGULAR);
 
     $allTokenTypes = [];
     foreach ($allTokens as $k => $t) {
@@ -338,7 +339,7 @@ function menu_token_form_submit($form, &$form_state) {
     $merged = array_merge($menuTokenBuildedByType[$menuName], $allTokenTypes);
 
     // Use only unique items in merge array.
-    $menuTokenBuildedByType[$menuName] = array_unique($merged);
+    $menuTokenBuildedByType[$menuName] = array_unique($merged, SORT_REGULAR);
     \Drupal::state()->set('menu_token_builded_by_type', serialize($menuTokenBuildedByType));
 
 
