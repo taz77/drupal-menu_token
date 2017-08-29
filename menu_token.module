@@ -366,21 +366,6 @@ function menu_token_form_submit($form, &$form_state) {
 }
 
 
-/**
- * {@inheritdoc}
- */
-function menu_token_get_string_between($string, $start, $end) {
-  $string = ' ' . $string;
-  $ini = strpos($string, $start);
-  if ($ini == 0) {
-    return '';
-  }
-  $ini += strlen($start);
-  $len = strpos($string, $end, $ini) - $ini;
-  return substr($string, $ini, $len);
-}
-
-
 
 /**
  * {@inheritdoc}
@@ -491,7 +476,7 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
 
           $replacement = $token_service->generate($tokenType, $tokenArray, [$tokenType => $dynamicVar], [], new BubbleableMetadata());
 
-          if (empty($$replacement) && $removeIfNotPresent) {
+          if (empty($replacement) && $removeIfNotPresent) {
 
             $replacement = [array_pop($tokenArray) => ''];
 
