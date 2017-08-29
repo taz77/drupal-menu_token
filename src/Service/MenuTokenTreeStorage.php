@@ -71,8 +71,6 @@ class MenuTokenTreeStorage extends MenuTreeStorage {
     // Invalidate any cache tagged with any menu name.
     $cache_tags = Cache::buildTags('config:system.menu', $affected_menus, '.');
     $this->cacheTagsInvalidator->invalidateTags($cache_tags);
-    // Every item in the cache bin should have one of the menu cache tags but it
-    // is not guaranteed, so invalidate everything in the bin.
   }
 
 }
