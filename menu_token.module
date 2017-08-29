@@ -373,24 +373,24 @@ function menu_token_form_submit($form, &$form_state) {
  */
 function menu_token_tokens($tokenType, $tokenArray, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
 
-  if (!empty($data['configuration_array'])) {
+  if (!empty($options['configuration_array'])) {
 
     $token_service = \Drupal::token();
 
     // I am forced to do that by drupal...
-    $data = $data['configuration_array'];
+    $options = $options['configuration_array'];
 
     // Flag to know what to do with tokens in case
     // where replacement is not found.
-    $removeIfNotPresent = !empty($data['remove_if_replacement_is_not_present']) &&
-      $data['remove_if_replacement_is_not_present'] == 1;
+    $removeIfNotPresent = !empty($options['remove_if_replacement_is_not_present']) &&
+      $options['remove_if_replacement_is_not_present'] == 1;
 
 
     $entityType = \Drupal::service('token.entity_mapper')->getEntityTypeForTokenType($tokenType);
 
-    if (!empty($data[$entityType][0])) {
+    if (!empty($options[$entityType][0])) {
       // Make type agnostic so it can handle any type.
-      switch ($data[$entityType][0]) {
+      switch ($options[$entityType][0]) {
         // Nothing to do.
         case "none":
 
@@ -470,7 +470,7 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
 
         case "user_defined":
 
-          $adminDefinedVariable = $data[$tokenType][1];
+          $adminDefinedVariable = $options[$tokenType][1];
 
           $dynamicVar = \Drupal::entityTypeManager()->getStorage($entityType)
             ->load($adminDefinedVariable);
@@ -491,7 +491,25 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
       }
 
     }
+    else {
 
+
+      $data = [];
+      switch ($tokenType) {
+
+        case "url":
+          $data["url"] = Url::createFromRequest(\Drupal::request());
+          break;
+
+        default:
+          break;
+
+      }
+      // Exotic tokens...
+      $replacement = $token_service->generate($tokenType, $tokenArray, $data, [], new BubbleableMetadata());
+
+
+    }
     return $replacement;
 
   }
@@ -510,7 +528,7 @@ function replace_links_with_tokens(Token $token_service, $replaceWith, $relevant
   if (!empty($configMenu)) {
     $configurationArray = unserialize($configMenu->configurationSerialized);
 
-    $links[$relevantLink['id']][$replaceWith] = $token_service->replace($links[$relevantLink['id']][$replaceWith], ["configuration_array" => $configurationArray]);
+    $links[$relevantLink['id']][$replaceWith] = $token_service->replace($links[$relevantLink['id']][$replaceWith], [] ,["configuration_array" => $configurationArray]);
 
   }
 
