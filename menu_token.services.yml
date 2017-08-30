@@ -6,16 +6,8 @@ services:
       - { name: 'event_subscriber' }
 
 
-  menu_token.tree_storage:
-      class: Drupal\menu_token\Service\MenuTokenTreeStorage
-      arguments: ['@database', '@cache.menu', '@cache_tags.invalidator', 'menu_tree']
-      public: false  # Private to plugin.manager.menu.link and menu.link_tree
-      tags:
-        - { name: backend_overridable }
-
-
   menu_token.manager.menu.link:
       class: Drupal\menu_token\Service\MenuTokenMenuLinkManager
-      arguments: ['@menu_token.tree_storage', '@menu_link.static.overrides', '@module_handler']
+      arguments: ['@menu.tree_storage', '@menu_link.static.overrides', '@module_handler']
 
 

@@ -66,7 +66,7 @@ class MenuTokenMenuLinkManager extends MenuLinkManager {
       }
     }
 
-    $this->treeStorage->rebuildForMenuToken($definitions);
+    $this->treeStorage->rebuild($definitions);
   }
 
 }
