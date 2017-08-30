@@ -16,7 +16,7 @@ class MenuTokenMenuLinkManager extends MenuLinkManager {
    */
   public function rebuildByMenuName($menuName) {
 
-    $definitions = $this->treeStorage->loadByProperties(['menu_name' => $menuName]);
+    /*$definitions = $this->treeStorage->loadByProperties(['menu_name' => $menuName]);
     $connection = \Drupal::database();
 
 
@@ -64,9 +64,9 @@ class MenuTokenMenuLinkManager extends MenuLinkManager {
       if (!empty($definitions[$id])) {
         $definitions[$id] = $changes + $definitions[$id];
       }
-    }
+    }*/
 
-    $this->treeStorage->rebuild($definitions);
+    $this->rebuild();
   }
 
 }
