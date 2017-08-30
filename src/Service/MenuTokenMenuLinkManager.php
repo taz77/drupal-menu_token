@@ -16,9 +16,9 @@ class MenuTokenMenuLinkManager extends MenuLinkManager {
    */
   public function rebuildByMenuName($menuName) {
 
-    $definitions = $this->treeStorage->loadByProperties(['menu_name' => $menuName]);
+    //$definitions = $this->treeStorage->loadByProperties(['menu_name' => $menuName]);
     $connection = \Drupal::database();
-
+    $definitions = $this->getDefinitions();
 
     foreach ($definitions as $plugin_id => &$definition) {
 
@@ -66,7 +66,7 @@ class MenuTokenMenuLinkManager extends MenuLinkManager {
       }
     }
 
-    $this->treeStorage->rebui($definitions);
+    $this->treeStorage->rebuild($definitions);
   }
 
 }
