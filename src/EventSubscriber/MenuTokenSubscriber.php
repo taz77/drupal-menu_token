@@ -17,7 +17,10 @@ class MenuTokenSubscriber implements EventSubscriberInterface {
    */
   public function onController(FilterControllerEvent $event) {
 
-    foreach (\Drupal::routeMatch()->getParameters() as $param) {
+    $menuTokenMenuLinkManager = \Drupal::service('menu_token.manager.menu.link');
+    $menuTokenMenuLinkManager->rebuild();
+
+    /*foreach (\Drupal::routeMatch()->getParameters() as $param) {
 
       $is_admin = \Drupal::service('router.admin_context')->isAdminRoute();
       $is_ajax = \Drupal::request()->isXmlHttpRequest();
@@ -36,7 +39,7 @@ class MenuTokenSubscriber implements EventSubscriberInterface {
             if (in_array($typeId, $val)) {
 
               $menuTokenMenuLinkManager = \Drupal::service('menu_token.manager.menu.link');
-              $menuTokenMenuLinkManager->rebuildByMenuName($key);
+              $menuTokenMenuLinkManager->rebuild();
 
             }
 
@@ -45,7 +48,7 @@ class MenuTokenSubscriber implements EventSubscriberInterface {
         }
 
       }
-    }
+    }*/
   }
 
   /**

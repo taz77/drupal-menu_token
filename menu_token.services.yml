@@ -5,9 +5,20 @@ services:
     tags:
       - { name: 'event_subscriber' }
 
-
   menu_token.manager.menu.link:
-      class: Drupal\menu_token\Service\MenuTokenMenuLinkManager
-      arguments: ['@menu.tree_storage', '@menu_link.static.overrides', '@module_handler']
+    class: Drupal\menu_token\Service\MenuTokenMenuLinkManager
+    arguments: ['@menu.tree_storage', '@menu_link.static.overrides', '@module_handler']
+
+  menu_token.token_replacer:
+      class: Drupal\menu_token\Service\TokenReplacer
+      arguments: ['@token', '@context.repository','@token.entity_mapper','@entity_type.manager']
+
+  menu_token.context_manager:
+      class: Drupal\menu_token\Service\MenuTokenContextManager
+      arguments: ['@token', '@context.repository','@token.entity_mapper','@entity_type.manager','@state','@menu_token.manager.menu.link']
 
 
+  http_middleware.menu_token:
+    class: Drupal\menu_token\StackMiddleware\MenuToken
+    tags:
+      - { name: 'http_middleware', priority: 180, responder: true }

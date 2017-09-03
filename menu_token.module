@@ -306,8 +306,6 @@ function menu_token_form_submit($form, &$form_state) {
 
     $token_service = \Drupal::token();
 
-    $menuName = $formObject->getMenuName();
-
     // Have to find out witch type to use by tokens
     // Available in link data and not in configuration entity.
     $titleTokens = $token_service->scan($values['title'][0]['value']);
@@ -322,26 +320,6 @@ function menu_token_form_submit($form, &$form_state) {
       $allTokenTypes[] = $k;
 
     }
-
-    $menuTokenBuildedByType = unserialize(\Drupal::state()->get('menu_token_builded_by_type'));
-
-    if (empty($menuTokenBuildedByType)) {
-
-      $menuTokenBuildedByType = [$menuName => []];
-
-    }
-
-    if (empty($menuTokenBuildedByType[$menuName])) {
-
-      $menuTokenBuildedByType[$menuName] = [];
-    }
-
-    $merged = array_merge($menuTokenBuildedByType[$menuName], $allTokenTypes);
-
-    // Use only unique items in merge array.
-    $menuTokenBuildedByType[$menuName] = array_unique($merged, SORT_REGULAR);
-    \Drupal::state()->set('menu_token_builded_by_type', serialize($menuTokenBuildedByType));
-
 
     if (!empty($configMenu)) {
 
@@ -358,10 +336,11 @@ function menu_token_form_submit($form, &$form_state) {
       ]);
     }
 
+
     $configMenu->save();
 
     $menuTokenMenuLinkManager = \Drupal::service('menu_token.manager.menu.link');
-    $menuTokenMenuLinkManager->rebuildByMenuName($menuName);
+    $menuTokenMenuLinkManager->rebuild();
 
   }
 }
@@ -373,73 +352,36 @@ function menu_token_form_submit($form, &$form_state) {
  */
 function menu_token_tokens($tokenType, $tokenArray, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
 
-  if (!empty($options['configuration_array'])) {
+  if (!empty($options['configuration'])) {
 
     $token_service = \Drupal::token();
+    $configuration = $options['configuration'];
 
-    // I am forced to do that by drupal...
-    $options = $options['configuration_array'];
-
-    // Flag to know what to do with tokens in case
-    // where replacement is not found.
-    $removeIfNotPresent = !empty($options['remove_if_replacement_is_not_present']) &&
-      $options['remove_if_replacement_is_not_present'] == 1;
-
-
+    // Flag to know what to do with tokens where replacement is not found.
+    $removeIfNotPresent = !empty($configuration['remove_if_replacement_is_not_present']) && $configuration['remove_if_replacement_is_not_present'] == 1;
     $entityType = \Drupal::service('token.entity_mapper')->getEntityTypeForTokenType($tokenType);
 
-    if (!empty($options[$entityType][0])) {
-      // Make type agnostic so it can handle any type.
-      switch ($options[$entityType][0]) {
-        // Nothing to do.
-        case "none":
+    $tokenReplacer = \Drupal::service('menu_token.token_replacer');
+    $token = array_pop($tokenArray);
 
-          $replacement = [array_pop($tokenArray) => ''];
+    if (!empty($configuration[$entityType][0])) {
+      // Make type agnostic so it can handle any type.
+      switch ($configuration[$entityType][0]) {
+        case "none":
+          $replacement = $tokenReplacer->replaceNone($token);
 
           break;
 
         case "context":
 
-          $contextsDef = \Drupal::service('context.repository')->getAvailableContexts();
-          $realC = \Drupal::service('context.repository')->getRuntimeContexts(array_keys($contextsDef));
+          $replacement = $tokenReplacer->replaceContext($token);
 
-          foreach ($realC as $keyI => $realCI) {
+          if (empty($replacement)) {
 
-            $contextDataDefinitionType = $realCI->getContextData()->getPluginDefinition();
-            $value = $realCI->getContextData()->getValue();
-
-            // If value is empty and there is no context.
-            // We use first value just to make menu system work.
-            if (empty($value)) {
-
-              try {
-
-                // Default value is always one.
-                $value = \Drupal::entityTypeManager()->getStorage($entityType)
-                  ->load(1);
-              }
-              catch (Exception $e) {
-                $value = "";
-              }
-
-            }
-
-
-            if ($contextDataDefinitionType["id"] == "entity" && method_exists($value, "getEntityTypeId") && $value->getEntityTypeId() == $entityType) {
-
-              if (!empty($value)) {
-                $rVar = $value;
-
-                if (is_array($rVar)) {
-                  $rVar = array_pop($rVar);
-                }
-
-                $replacement = $token_service->generate($tokenType, $tokenArray, [$tokenType => $rVar], [], new BubbleableMetadata());
-                break;
-              }
-            }
+            $replacement = $tokenReplacer->replaceExoticToken($token);
           }
-          if (empty($replacement) && $removeIfNotPresent) {
+
+          if (empty($replacement)) {
 
             $replacement = [array_pop($tokenArray) => ''];
           }
@@ -448,17 +390,7 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
 
         case "random":
 
-          $query = \Drupal::entityQuery($entityType);
-          $userIds = $query->execute();
-
-          // Pick one random user.
-          $randomId = array_rand($userIds, 1);
-
-          $randomVar = \Drupal::entityTypeManager()->getStorage($entityType)
-            ->load($randomId);
-
-          $replacement = $token_service->generate($tokenType, $tokenArray, [$tokenType => $randomVar], [], new BubbleableMetadata());
-
+          $replacement = $tokenReplacer->replaceRandom($token);
 
           if (empty($replacement) && $removeIfNotPresent) {
 
@@ -472,10 +404,7 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
 
           $adminDefinedVariable = $options[$tokenType][1];
 
-          $dynamicVar = \Drupal::entityTypeManager()->getStorage($entityType)
-            ->load($adminDefinedVariable);
-
-          $replacement = $token_service->generate($tokenType, $tokenArray, [$tokenType => $dynamicVar], [], new BubbleableMetadata());
+          $replacement = $tokenReplacer->replaceUserDefined($token, $adminDefinedVariable);
 
           if (empty($replacement) && $removeIfNotPresent) {
 
@@ -493,23 +422,10 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
     }
     else {
 
-
-      $data = [];
-      switch ($tokenType) {
-
-        case "url":
-          $data["url"] = Url::createFromRequest(\Drupal::request());
-          break;
-
-        default:
-          break;
-
-      }
-      // Exotic tokens...
-      $replacement = $token_service->generate($tokenType, $tokenArray, $data, [], new BubbleableMetadata());
-
+      $replacement = $tokenReplacer->replaceExoticToken($token);
 
     }
+
     return $replacement;
 
   }
@@ -520,16 +436,29 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
  */
 function replace_links_with_tokens(Token $token_service, $replaceWith, $relevantLink, &$links) {
 
-
   $uuIdFromLink = substr($relevantLink['id'], strpos($relevantLink['id'], ":") + 1, strlen($relevantLink['id']));
   $configMenu = \Drupal::entityTypeManager()->getStorage('link_configuration_storage')->load($uuIdFromLink);
 
   // Replace nothing to mess here all action is in hook.
   if (!empty($configMenu)) {
-    $configurationArray = unserialize($configMenu->configurationSerialized);
 
-    $links[$relevantLink['id']][$replaceWith] = $token_service->replace($links[$relevantLink['id']][$replaceWith], [] ,["configuration_array" => $configurationArray]);
+    $configuration = unserialize($configMenu->configurationSerialized);
+    $links[$relevantLink['id']][$replaceWith] = $token_service->replace($links[$relevantLink['id']][$replaceWith], [], ["configuration" => $configuration]);
 
+  }
+}
+
+/**
+ * {@inheritdoc}
+ */
+function menu_token_prepare_context_replacment(&$links) {
+
+  $token_service = \Drupal::token();
+
+  foreach ( $links as $key => $linkData) {
+
+    $links[$key]["url"]["url"] = $token_service->replace($linkData["url"], [], ["configuration" => $linkData["config"]]);
+    $links[$key]["url"]["title"] = $token_service->replace($linkData["title"], [], ["configuration" => $linkData["config"]]);
   }
 
 }
@@ -546,9 +475,25 @@ function menu_token_menu_links_discovered_alter(&$links) {
 
   $token_service = \Drupal::token();
 
-  foreach ($relevantLinks as $relevantLink) {
-    replace_links_with_tokens($token_service, "url", $relevantLink, $links);
-    replace_links_with_tokens($token_service, "title", $relevantLink, $links);
-  }
+  $contextManager = \Drupal::service('menu_token.context_manager');
 
+  foreach ($relevantLinks as $relevantLink) {
+    
+    $uuIdFromLink = substr($relevantLink['id'], strpos($relevantLink['id'], ":") + 1, strlen($relevantLink['id']));
+    $configMenu = \Drupal::entityTypeManager()
+      ->getStorage('link_configuration_storage')
+      ->load($uuIdFromLink);
+
+
+    if (!empty($configMenu)) {
+
+      $config = unserialize($configMenu->configurationSerialized);
+
+      $contextManager->prepareContectualLinks($relevantLink, $config);
+
+      replace_links_with_tokens($token_service, "url", $relevantLink, $links);
+      replace_links_with_tokens($token_service, "title", $relevantLink, $links);
+
+    }
+  }
 }

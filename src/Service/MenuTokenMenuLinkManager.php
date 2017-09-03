@@ -14,32 +14,15 @@ class MenuTokenMenuLinkManager extends MenuLinkManager {
   /**
    * {@inheritdoc}
    */
-  public function rebuildByMenuName($menuName) {
+  public function rebuildMenuToken($definitions) {
 
-    //$definitions = $this->treeStorage->loadByProperties(['menu_name' => $menuName]);
-    $connection = \Drupal::database();
-    $definitions = $this->getDefinitions();
+    try {
+    $this->moduleHandler->invoke("menu_token", "prepare_context_replacment", [&$definitions]);
+    } catch (\Exception $e) {
 
-    foreach ($definitions as $plugin_id => &$definition) {
-
-      if (strpos($plugin_id, 'menu_link_content:') === 0) {
-        // Have to overide drupal default.
-        $data = explode(":", $plugin_id);
-        $query = $connection->select("menu_link_content", 'ml');
-        $query->join('menu_link_content_data', 'mlcd', 'mlcd.id = ml.id');
-        $query->addField('mlcd', 'title');
-        $query->addField('mlcd', 'link__uri');
-        $query->condition('ml.bundle', 'menu_link_content');
-        $query->condition('ml.uuid', $data[1], 'IN');
-        $query->distinct(TRUE);
-        $result = $query->execute()->fetch();
-        $definition["title"] = $result->title;
-        $definition["url"] = $result->link__uri;
-      }
-
+      $a = 0;
+      die("sdad");
     }
-
-    $this->moduleHandler->invoke("menu_token", "menu_links_discovered_alter", [&$definitions]);
 
     foreach ($definitions as $plugin_id => &$definition) {
 
@@ -47,6 +30,7 @@ class MenuTokenMenuLinkManager extends MenuLinkManager {
       $this->processDefinition($definition, $plugin_id);
 
     }
+
 
     // If this plugin was provided by a module that does not exist, remove the
     // plugin definition.
@@ -67,6 +51,57 @@ class MenuTokenMenuLinkManager extends MenuLinkManager {
     }
 
     $this->treeStorage->rebuild($definitions);
+
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMenuTreeStorage() {
+    return $this->treeStorage;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function menuNameInUseContent($menu_name) {
+
+    $query = $this->connection->select("menu_link_content", 'ml');
+    $query->join('menu_link_content_data', 'mlcd', 'mlcd.id = ml.id');
+    $query->addField('mlcd', 'id');
+    $query->condition('ml.bundle', 'menu_link_content');
+    $query->condition('ml.menu_name', $menu_name, 'IN');
+    $query->range(0, 1);
+
+    return (bool) $this->safeExecuteSelect($query);
+
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMenuNamesInContent() {
+
+    $query = $this->connection->select("menu_link_content", 'ml');
+    $query->join('menu_link_content_data', 'mlcd', 'mlcd.id = ml.id');
+    $query->addField('mlcd', 'id');
+    $query->condition('ml.bundle', 'menu_link_content');
+    $query->distinct();
+    return $this->safeExecuteSelect($query)->fetchAllKeyed(0, 0);
+
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getContextMenuItems($menuName) {
+
+    $query = $this->connection->select("menu_link_content", 'ml');
+    $query->join('menu_link_content_data', 'mlcd', 'mlcd.id = ml.id');
+    $query->addField('mlcd', 'id');
+    $query->condition('ml.bundle', 'menu_link_content');
+    $query->condition('ml.menu_name', $menuName, 'IN');
+  }
+
 
 }
