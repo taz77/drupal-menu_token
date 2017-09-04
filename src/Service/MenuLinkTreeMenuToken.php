@@ -103,7 +103,12 @@ class MenuLinkTreeMenuToken extends MenuLinkTree {
       // text, which would vary by 'user' cache context), or a dynamic route
       // name or route parameters.
       $tree_link_cacheability = $tree_link_cacheability->merge(CacheableMetadata::createFromObject($data->link));
+      $def = $link->getPluginDefinition();
+      //$def->
+      if(!empty($def["options"]["bubleble_metadata"])) {
 
+        $tree_link_cacheability = $tree_link_cacheability->merge(CacheableMetadata::createFromObject($def["options"]["bubleble_metadata"]));
+      }
       // Only render accessible links.
       if ($data->access instanceof AccessResultInterface && !$data->access->isAllowed()) {
         continue;

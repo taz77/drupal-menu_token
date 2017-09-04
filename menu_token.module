@@ -28,14 +28,6 @@ function menu_token_help($route_name, RouteMatchInterface $route_match) {
   }
 }
 
-/**
- * {@inheritdoc}
- */
-function menu_token_entity_type_alter(array &$entity_types) {
-
-  $entity_types['menu_link_content']->setClass('Drupal\menu_token\Entity\MenuTokenLinkContent');
-
-}
 
 /**
  * Implements form_id_alter().
@@ -514,4 +506,3 @@ function menu_token_menu_links_discovered_alter(&$links) {
   }
 
 }
-

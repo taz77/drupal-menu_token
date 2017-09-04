@@ -14,6 +14,7 @@ class MenuTokenLinkContent extends MenuLinkContent {
    * {@inheritdoc}
    */
   public function getRouteParameters() {
+
     $parameters = isset($this->pluginDefinition['route_parameters']) ? $this->pluginDefinition['route_parameters'] : [];
     $route = $this->routeProvider()->getRouteByName($this->getRouteName());
     $variables = $route->compile()->getVariables();
