@@ -3,6 +3,7 @@
 namespace Drupal\menu_token\Service;
 
 use Drupal\Core\Menu\MenuLinkManager;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
  * Manages discovery, instantiation, and tree building of menu link plugins.
@@ -24,33 +25,24 @@ class MenuTokenMenuLinkManager extends MenuLinkManager {
 
     }
 
-    foreach ($definitions as $plugin_id => &$definition) {
+    foreach ($definitions as $id => $definition) {
 
-      $definition['id'] = $plugin_id;
-      $this->processDefinition($definition, $plugin_id);
+      $tranlatable = new TranslatableMarkup($definition["title"]);
+      //$stringT = $tranlatable->render();
+      \Drupal::database()->update('menu_tree')
+        ->condition('id' , $definition["provider"].":".$id)
+        ->fields([
+          'url' => $definition["url"],
+          'title' => serialize($tranlatable),
+        ])
+        ->execute();
 
     }
+     $this->resetDefinitions();
+     $menuTokenMenuLinkManager = \Drupal::service('cache.menu');
+     $menuTokenMenuLinkManager->invalidateAll();
+     $this->resetDefinitions();
 
-
-    // If this plugin was provided by a module that does not exist, remove the
-    // plugin definition.
-    // @todo Address what to do with an invalid plugin.
-    //   https://www.drupal.org/node/2302623
-    foreach ($definitions as $plugin_id => $plugin_definition) {
-      if (!empty($plugin_definition['provider']) && !$this->moduleHandler->moduleExists($plugin_definition['provider'])) {
-        unset($definitions[$plugin_id]);
-      }
-    }
-
-    // Apply overrides from config.
-    $overrides = $this->overrides->loadMultipleOverrides(array_keys($definitions));
-    foreach ($overrides as $id => $changes) {
-      if (!empty($definitions[$id])) {
-        $definitions[$id] = $changes + $definitions[$id];
-      }
-    }
-
-    $this->treeStorage->rebuild($definitions);
 
   }
 

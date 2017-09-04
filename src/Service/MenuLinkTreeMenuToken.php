@@ -138,7 +138,7 @@ class MenuLinkTreeMenuToken extends MenuLinkTree {
         $element['url']->setOptions(NestedArray::mergeDeep($element['url']->getOptions(), $data->options));
       }
       $element['original_link'] = $link;
-      $element['#cache']['contexts'] = $tree_access_cacheability->getCacheContexts();
+      //$element['#cache']['contexts'] = $tree_access_cacheability->getCacheContexts();
       // Index using the link's unique ID.
       $items[$link->getPluginId()] = $element;
     }
