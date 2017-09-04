@@ -21,7 +21,7 @@ class MenuTokenSubscriber implements EventSubscriberInterface {
     // and will suffer performance hit.
     // The is nothing that can be done here.
     $menuTokenMenuLinkManager = \Drupal::service('menu_token.context_manager');
-    $menuTokenMenuLinkManager->replaceContectualLinks();
+    //$menuTokenMenuLinkManager->replaceContectualLinks();
 
 
   }
