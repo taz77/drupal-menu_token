@@ -64,10 +64,12 @@ class TokenReplacer {
   /**
    * {@inheritdoc}
    */
-  public function replaceContext($token) {
+  public function replaceContext($token, BubbleableMetadata $b) {
 
     $tokenType = $this->getTokenType($token);
     $entityType = $this->tokenEntityMapper->getEntityTypeForTokenType($tokenType);
+
+    $b->addCacheContexts(["url.path"]);
 
     // If there is no entity type we are in trouble..
     if ($entityType === FALSE) {
@@ -106,7 +108,7 @@ class TokenReplacer {
             $rVar = array_pop($rVar);
           }
 
-          $replacement = $this->tokenService->generate($tokenType, [$token], [$tokenType => $rVar], [], new BubbleableMetadata());
+          $replacement = $this->tokenService->generate($tokenType, [$token], [$tokenType => $rVar], [], $b);
 
           return $replacement;
         }
@@ -120,7 +122,7 @@ class TokenReplacer {
   /**
    * {@inheritdoc}
    */
-  public function replaceRandom($token) {
+  public function replaceRandom($token, BubbleableMetadata $b) {
 
     $tokenType = $this->getTokenType($token);
     $entityType = $this->tokenEntityMapper->getEntityTypeForTokenType($tokenType);
@@ -134,7 +136,8 @@ class TokenReplacer {
     $randomVar = $this->entityTypeManager->getStorage($entityType)
       ->load($randomId);
 
-    $replacement = $this->tokenService->generate($tokenType, [$token], [$tokenType => $randomVar], [], new BubbleableMetadata());
+    $replacement = $this->tokenService->generate($tokenType, [$token], [$tokenType => $randomVar], [], $b);
+
 
     return $replacement;
   }
@@ -142,7 +145,7 @@ class TokenReplacer {
   /**
    * {@inheritdoc}
    */
-  public function replaceUserDefined($token, $value) {
+  public function replaceUserDefined($token, $value, BubbleableMetadata $b) {
 
     $tokenType = $this->getTokenType($token);
     $entityType = $this->tokenEntityMapper->getEntityTypeForTokenType($tokenType);
@@ -150,7 +153,7 @@ class TokenReplacer {
     $dynamicVar = \Drupal::entityTypeManager()->getStorage($entityType)
       ->load($value);
 
-    $replacement = $this->tokenService->generate($tokenType, [$token], [$tokenType => $dynamicVar], [], new BubbleableMetadata());
+    $replacement = $this->tokenService->generate($tokenType, [$token], [$tokenType => $dynamicVar], [], $b);
 
     return $replacement;
   }
@@ -158,7 +161,7 @@ class TokenReplacer {
   /**
    * {@inheritdoc}
    */
-  public function replaceExoticToken($token) {
+  public function replaceExoticToken($token, BubbleableMetadata $b) {
 
     $tokenType = $this->getTokenType($token);
 
@@ -174,7 +177,7 @@ class TokenReplacer {
 
     }
     // Exotic tokens...
-    $replacement = $this->tokenService->generate($tokenType, [$token], $data, [], new BubbleableMetadata());
+    $replacement = $this->tokenService->generate($tokenType, [$token], $data, [], $b);
 
     return $replacement;
   }

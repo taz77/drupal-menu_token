@@ -51,6 +51,7 @@ class MenuTokenContextManager {
   public function prepareContectualLinks($relevantLink, $config) {
 
     $this->contectualReplacmentLinks = unserialize($this->state->get('menu_token_links_contectual_replacments'));
+    $this->contectualReplacmentLinks = [];
 
     $uuIdFromLink = substr($relevantLink['id'], strpos($relevantLink['id'], ":") + 1, strlen($relevantLink['id']));
 
@@ -94,56 +95,6 @@ class MenuTokenContextManager {
   public function removeFromState($uuIdFromLink) {
 
     unset($this->contectualReplacmentLinks[$uuIdFromLink]);
-
-  }
-
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function replaceToken($tokenType, $tokenArray, array $data, array $options) {
-
-    if (!empty($options['configuration'])) {
-
-      $token_service = \Drupal::token();
-      $configuration = $options['configuration'];
-
-      // Flag to know what to do with tokens where replacement is not found.
-      $removeIfNotPresent = !empty($configuration['remove_if_replacement_is_not_present']) && $configuration['remove_if_replacement_is_not_present'] == 1;
-      $entityType = \Drupal::service('token.entity_mapper')->getEntityTypeForTokenType($tokenType);
-
-      $tokenReplacer = \Drupal::service('menu_token.token_replacer');
-      $token = array_pop($tokenArray);
-
-      if (!empty($configuration[$entityType][0])) {
-        // Make type agnostic so it can handle any type.
-        switch ($configuration[$entityType][0]) {
-
-          case "context":
-
-            $replacement = $tokenReplacer->replaceContext($token);
-
-            if (empty($replacement) && $removeIfNotPresent) {
-
-              $replacement = [array_pop($tokenArray) => ''];
-            }
-            break;
-
-          default:
-            break;
-
-        }
-
-      }
-      else {
-
-        $replacement = $tokenReplacer->replaceExoticToken($token);
-
-      }
-
-      return $replacement;
-
-    }
   }
 
   /**
@@ -156,23 +107,6 @@ class MenuTokenContextManager {
     if (empty($contectualReplacmentLinks)) {
       return TRUE;
     }
-
-    foreach ( $contectualReplacmentLinks as $key => $linkData) {
-
-     $titleTokens = $this->tokenService->scan($contectualReplacmentLinks[$key]["link"]["title"]);
-
-     foreach ($titleTokens as $type => $token) {
-
-       $replacment = $this->replaceToken($type, $token,[],["configuration" => $linkData["config"]]);
-        $m = 0;
-     }
-
-     $a = 0;
-      //$links[$key]["url"]["url"] = $token_service->replace($linkData["url"], [], ["configuration" => $linkData["config"]]);
-      //$links[$key]["url"]["title"] = $token_service->replace($linkData["title"], [], ["configuration" => $linkData["config"]]);
-    }
-
-
 
     $this->menuTokenMenuLinkManager->rebuildMenuToken($contectualReplacmentLinks);
 

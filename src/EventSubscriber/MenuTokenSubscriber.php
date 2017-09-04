@@ -17,38 +17,13 @@ class MenuTokenSubscriber implements EventSubscriberInterface {
    */
   public function onController(FilterControllerEvent $event) {
 
-    $menuTokenMenuLinkManager = \Drupal::service('menu_token.manager.menu.link');
-    $menuTokenMenuLinkManager->rebuild();
+    // Menu should be cached if not the user is st...
+    // and will suffer performance hit.
+    // The is nothing that can be done here.
+    $menuTokenMenuLinkManager = \Drupal::service('menu_token.context_manager');
+    $menuTokenMenuLinkManager->replaceContectualLinks();
 
-    /*foreach (\Drupal::routeMatch()->getParameters() as $param) {
 
-      $is_admin = \Drupal::service('router.admin_context')->isAdminRoute();
-      $is_ajax = \Drupal::request()->isXmlHttpRequest();
-
-      if ($param instanceof EntityInterface && $is_admin === FALSE && $is_ajax === FALSE) {
-
-        // Must read from configuration.
-        $menuTokenBuildedByType = unserialize(\Drupal::state()->get('menu_token_builded_by_type'));
-
-        if (!empty($menuTokenBuildedByType)) {
-
-          $typeId = $param->getEntityTypeId();
-
-          foreach ($menuTokenBuildedByType as $key => $val) {
-
-            if (in_array($typeId, $val)) {
-
-              $menuTokenMenuLinkManager = \Drupal::service('menu_token.manager.menu.link');
-              $menuTokenMenuLinkManager->rebuild();
-
-            }
-
-          }
-
-        }
-
-      }
-    }*/
   }
 
   /**
