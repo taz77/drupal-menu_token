@@ -25,9 +25,9 @@ function menu_token_help($route_name, RouteMatchInterface $route_match) {
       return $output;
 
     default:
+      break;
   }
 }
-
 
 /**
  * Implements form_id_alter().
@@ -101,12 +101,16 @@ function menu_token_form_menu_link_content_menu_link_content_form_alter(&$form, 
   $form['menu_token_options']['menu_token_modal_link'] = [
     '#title' => t('Browse available tokens.'),
     '#type' => 'link',
-    '#url' => Url::fromRoute('help.page', ["name" => "token"]),
+    '#url' => Url::fromRoute('menu_token.page.show.available.tokens'),
 
     '#attributes' => [
       'class' => ['use-ajax'],
       'data-dialog-type' => 'modal',
-      'data-dialog-options' => Json::encode(['width' => 400, 'height' => 700]),
+      'data-dialog-options' => Json::encode([
+        'width' => 600,
+        'height' => 600,
+        'resizable' => TRUE,
+      ]),
     ],
 
     '#states' => [
