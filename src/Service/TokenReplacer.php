@@ -69,7 +69,8 @@ class TokenReplacer {
     $tokenType = $this->getTokenType($token);
     $entityType = $this->tokenEntityMapper->getEntityTypeForTokenType($tokenType);
 
-    $b->addCacheContexts(["url.path"]);
+    $b->addCacheContexts(["url"]);
+    $b->addCacheContexts(["user"]);
 
     // If there is no entity type we are in trouble..
     if ($entityType === FALSE) {
@@ -176,6 +177,10 @@ class TokenReplacer {
         break;
 
     }
+
+    $b->addCacheContexts(["url"]);
+    $b->addCacheContexts(["user"]);
+
     // Exotic tokens...
     $replacement = $this->tokenService->generate($tokenType, [$key => $token], $data, [], $b);
 

@@ -19,18 +19,18 @@ class MenuTokenSubscriber implements EventSubscriberInterface {
 
 
     // Use cache to avoid duplacate req!
-    $cache = \Drupal::cache()->get('menu_token_cached_context');
-    $cr = \Drupal::service('context.repository');
-    $contextsDef = $cr->getAvailableContexts();
-    $realC = $cr->getRuntimeContexts(array_keys($contextsDef));
+    //$cache = \Drupal::cache()->get('menu_token_cached_context');
+   // $cr = \Drupal::service('context.repository');
+    //$contextsDef = $cr->getAvailableContexts();
+    //$realC = $cr->getRuntimeContexts(array_keys($contextsDef));
 
-    if (sha1(json_encode($realC)) !== sha1(json_encode($cache->data))) {
+   // if (sha1(serialize($realC)) !== sha1(serialize($cache->data))) {
 
-      \Drupal::cache()->set('menu_token_cached_context', $realC, -1, ['menu_token_cached_context_tag']);
+      //\Drupal::cache()->set('menu_token_cached_context', $realC, -1, ['menu_token_cached_context_tag']);
 
       $menuTokenMenuLinkManager = \Drupal::service('menu_token.context_manager');
       $menuTokenMenuLinkManager->replaceContectualLinks();
-    }
+    //}
 
   }
 
