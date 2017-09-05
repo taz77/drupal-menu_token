@@ -481,7 +481,11 @@ function menu_token_menu_links_discovered_alter(&$links) {
 
   // Load configuration from entity.
   $relevantLinks = array_filter($links, function ($k) {
-    return strpos($k, 'menu_link_content:') === 0;
+
+    if (!isset($k['id'])) {
+      $k['id'] = 0;
+    }
+    return strpos($k['id'], 'menu_link_content:') === 0;
   });
 
   $token_service = \Drupal::token();
