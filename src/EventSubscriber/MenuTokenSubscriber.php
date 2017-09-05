@@ -5,7 +5,7 @@ namespace Drupal\menu_token\EventSubscriber;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Cache\CacheBackendInterface;
 
 /**
  * Event Subscriber MenuTokenSubsciber.
@@ -17,11 +17,20 @@ class MenuTokenSubscriber implements EventSubscriberInterface {
    */
   public function onController(FilterControllerEvent $event) {
 
-    // Menu should be cached if not the user is st...
-    // and will suffer performance hit.
-    // The is nothing that can be done here.
-    $menuTokenMenuLinkManager = \Drupal::service('menu_token.context_manager');
-    $menuTokenMenuLinkManager->replaceContectualLinks();
+
+    // Use cache to avoid duplacate req!
+    $cache = \Drupal::cache()->get('menu_token_cached_context');
+    $cr = \Drupal::service('context.repository');
+    $contextsDef = $cr->getAvailableContexts();
+    $realC = $cr->getRuntimeContexts(array_keys($contextsDef));
+
+    if (sha1(json_encode($realC)) !== sha1(json_encode($cache->data))) {
+
+      \Drupal::cache()->set('menu_token_cached_context', $realC, -1, ['menu_token_cached_context_tag']);
+
+      $menuTokenMenuLinkManager = \Drupal::service('menu_token.context_manager');
+      $menuTokenMenuLinkManager->replaceContectualLinks();
+    }
 
   }
 

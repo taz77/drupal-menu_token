@@ -411,7 +411,7 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
 
           case "user_defined":
 
-            $adminDefinedVariable = $options[$tokenType][1];
+            $adminDefinedVariable = $configuration[$tokenType][1];
 
             $r = $tokenReplacer->replaceUserDefined($token, $key, $adminDefinedVariable, $bubbleable_metadata);
 
