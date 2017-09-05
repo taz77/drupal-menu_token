@@ -19,29 +19,15 @@ class MenuTokenMenuLinkManager extends MenuLinkManager {
 
     try {
 
-        $this->moduleHandler->invoke("menu_token", "prepare_context_replacment", [&$definitions]);
+      $this->moduleHandler->invoke("menu_token", "prepare_context_replacment", [&$definitions]);
 
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
 
     }
 
-    foreach ($definitions as $id => $definition) {
-
-      $tranlatable = new TranslatableMarkup($definition["title"]);
-      //$stringT = $tranlatable->render();
-      \Drupal::database()->update('menu_tree')
-        ->condition('id' , $definition["provider"].":".$id)
-        ->fields([
-          'url' => $definition["url"],
-          'title' => serialize($tranlatable),
-        ])
-        ->execute();
-
-    }
-     $this->resetDefinitions();
-     $menuTokenMenuLinkManager = \Drupal::service('cache.menu');
-     $menuTokenMenuLinkManager->invalidateAll();
-     $this->resetDefinitions();
+    $mtts = \Drupal::service('menu_token.tree_storage');
+    $mtts->rebuildNonDestructive($definitions);
 
 
   }

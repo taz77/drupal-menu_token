@@ -80,28 +80,27 @@ class TokenReplacer {
 
     $contextsDef = $this->contextRepository->getAvailableContexts();
     $realC = $this->contextRepository->getRuntimeContexts(array_keys($contextsDef));
+
     foreach ($realC as $keyI => $realCI) {
 
       $contextDataDefinitionType = $realCI->getContextData()->getPluginDefinition();
       $value = $realCI->getContextData()->getValue();
 
+
       // If value is empty and there is no context.
       // We use first value just to make menu system work.
       if (empty($value)) {
 
-        try {
-
-          // Default value is always one.
-          $value = $this->entityTypeManager->getStorage($entityType)->load(1);
-        }
-        catch (Exception $e) {
-          $value = "";
-        }
-
+        continue;
       }
 
       if ($contextDataDefinitionType["id"] == "entity" && method_exists($value, "getEntityTypeId") && $value->getEntityTypeId() == $entityType) {
 
+        // A trap of default value.
+        if (method_exists($value, "isDefault") && $value->isDefault()) {
+          $value = "";
+
+        }
         if (!empty($value)) {
           $rVar = $value;
 

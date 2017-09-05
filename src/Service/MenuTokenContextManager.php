@@ -52,8 +52,6 @@ class MenuTokenContextManager {
 
     $this->contectualReplacmentLinks = unserialize($this->state->get('menu_token_links_contectual_replacments'));
 
-    $uuIdFromLink = substr($relevantLink['id'], strpos($relevantLink['id'], ":") + 1, strlen($relevantLink['id']));
-
     $text_tokens = $this->tokenService->scan($relevantLink["url"]);
 
     $text_tokens = array_merge($text_tokens, $this->tokenService->scan($relevantLink["title"]));
@@ -69,18 +67,23 @@ class MenuTokenContextManager {
 
       }
 
+      if ($entityType === FALSE) {
+
+        $useInContext = TRUE;
+      }
+
     }
 
     if ($useInContext) {
 
-      $this->contectualReplacmentLinks[$uuIdFromLink] = [
+      $this->contectualReplacmentLinks[$relevantLink['id']] = [
         "link" => $relevantLink,
         "config" => $config,
       ];
     }
     else {
 
-      unset($this->contectualReplacmentLinks[$uuIdFromLink]);
+      unset($this->contectualReplacmentLinks[$relevantLink['id']]);
 
     }
 

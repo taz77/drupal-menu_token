@@ -104,8 +104,8 @@ class MenuLinkTreeMenuToken extends MenuLinkTree {
       // name or route parameters.
       $tree_link_cacheability = $tree_link_cacheability->merge(CacheableMetadata::createFromObject($data->link));
       $def = $link->getPluginDefinition();
-      //$def->
-      if(!empty($def["options"]["bubleble_metadata"])) {
+
+      if (!empty($def["options"]["bubleble_metadata"])) {
 
         $tree_link_cacheability = $tree_link_cacheability->merge(CacheableMetadata::createFromObject($def["options"]["bubleble_metadata"]));
       }
@@ -143,8 +143,6 @@ class MenuLinkTreeMenuToken extends MenuLinkTree {
         $element['url']->setOptions(NestedArray::mergeDeep($element['url']->getOptions(), $data->options));
       }
       $element['original_link'] = $link;
-      //$element['#cache']['contexts'] = $tree_access_cacheability->getCacheContexts();
-      // Index using the link's unique ID.
       $items[$link->getPluginId()] = $element;
     }
 

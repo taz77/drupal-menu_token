@@ -16,3 +16,8 @@ services:
   menu_token.manager.menu.link:
       class: Drupal\menu_token\Service\MenuTokenMenuLinkManager
       arguments: ['@menu.tree_storage', '@menu_link.static.overrides', '@module_handler']
+
+
+  menu_token.tree_storage:
+      class: Drupal\menu_token\Service\MenuTokenTreeStorage
+      arguments: ['@database', '@cache.menu', '@cache_tags.invalidator', 'menu_tree']
