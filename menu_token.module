@@ -504,6 +504,7 @@ function menu_token_menu_links_discovered_alter(&$links) {
   $bubbleableMetadata = new BubbleableMetadata();
 
   $contextManager = \Drupal::service('menu_token.context_manager');
+  $contextManager->clear();
 
   if (!empty($relevantLinks) && is_array($relevantLinks)) {
 

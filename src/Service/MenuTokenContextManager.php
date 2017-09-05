@@ -51,7 +51,6 @@ class MenuTokenContextManager {
   public function prepareContectualLinks($relevantLink, $config) {
 
     $this->contectualReplacmentLinks = unserialize($this->state->get('menu_token_links_contectual_replacments'));
-    $this->contectualReplacmentLinks = [];
 
     $uuIdFromLink = substr($relevantLink['id'], strpos($relevantLink['id'], ":") + 1, strlen($relevantLink['id']));
 
@@ -95,6 +94,16 @@ class MenuTokenContextManager {
   public function removeFromState($uuIdFromLink) {
 
     unset($this->contectualReplacmentLinks[$uuIdFromLink]);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function clear() {
+
+    $this->contectualReplacmentLinks = [];
+
+    $this->state->set('menu_token_links_contectual_replacments', serialize($this->contectualReplacmentLinks));
   }
 
   /**
