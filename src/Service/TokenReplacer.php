@@ -8,6 +8,7 @@ use Drupal\token\TokenEntityMapperInterface;
 use Drupal\token\TokenInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Url;
+use Drupal\user\Entity\User;
 
 /**
  * {@inheritdoc}
@@ -91,16 +92,20 @@ class TokenReplacer {
       // We use first value just to make menu system work.
       if (empty($value)) {
 
-        continue;
+
+        switch ($entityType) {
+          case "user":
+            $value = User::load(\Drupal::currentUser()->id());
+            break;
+
+          default:
+            continue;
+
+        }
       }
 
       if ($contextDataDefinitionType["id"] == "entity" && method_exists($value, "getEntityTypeId") && $value->getEntityTypeId() == $entityType) {
 
-        // A trap of default value.
-        /*if (method_exists($value, "isDefault") && $value->isDefault()) {
-          $value = "";
-
-        }*/
         if (!empty($value)) {
           $rVar = $value;
 
