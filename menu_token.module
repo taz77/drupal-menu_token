@@ -357,79 +357,91 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
 
   if (!empty($options['configuration'])) {
 
-    $token_service = \Drupal::token();
     $configuration = $options['configuration'];
 
     // Flag to know what to do with tokens where replacement is not found.
     $removeIfNotPresent = !empty($configuration['remove_if_replacement_is_not_present']) && $configuration['remove_if_replacement_is_not_present'] == 1;
-    $entityType = \Drupal::service('token.entity_mapper')->getEntityTypeForTokenType($tokenType);
 
-    $tokenReplacer = \Drupal::service('menu_token.token_replacer');
-    $token = array_pop($tokenArray);
+    $replacements = [];
 
-    if (!empty($configuration[$entityType][0])) {
-      // Make type agnostic so it can handle any type.
-      switch ($configuration[$entityType][0]) {
-        case "none":
-          $replacement = $tokenReplacer->replaceNone($token, $bubbleable_metadata);
+    foreach ($tokenArray as $key => $token) {
 
-          break;
+      $entityType = \Drupal::service('token.entity_mapper')
+        ->getEntityTypeForTokenType($tokenType);
+      $tokenReplacer = \Drupal::service('menu_token.token_replacer');
 
-        case "context":
+      if (!empty($configuration[$entityType][0])) {
+        // Make type agnostic so it can handle any type.
+        switch ($configuration[$entityType][0]) {
+          case "none":
+            $r = $tokenReplacer->replaceNone($token, $key, $bubbleable_metadata);
+            $replacements = array_merge($replacements, $r);
 
-          $replacement = $tokenReplacer->replaceContext($token, $bubbleable_metadata);
+            break;
 
-          if (empty($replacement)) {
+          case "context":
 
-            $replacement = $tokenReplacer->replaceExoticToken($token, $bubbleable_metadata);
-          }
+            $r = $tokenReplacer->replaceContext($token, $key, $bubbleable_metadata);
 
-          if (empty($replacement)) {
+            if (empty($r)) {
 
-            $replacement = [array_pop($tokenArray) => ''];
-          }
+              $r = $tokenReplacer->replaceExoticToken($token, $key, $bubbleable_metadata);
+            }
 
-          break;
+            if (empty($r)) {
 
-        case "random":
+              $r = [array_pop($tokenArray) => ''];
+            }
 
-          $replacement = $tokenReplacer->replaceRandom($token, $bubbleable_metadata);
+            $replacements = array_merge($replacements, $r);
 
-          if (empty($replacement) && $removeIfNotPresent) {
+            break;
 
-            $replacement = [array_pop($tokenArray) => ''];
-          }
+          case "random":
 
+            $r = $tokenReplacer->replaceRandom($token, $key, $bubbleable_metadata);
 
-          break;
+            if (empty($r) && $removeIfNotPresent) {
 
-        case "user_defined":
+              $r = [array_pop($tokenArray) => ''];
+            }
 
-          $adminDefinedVariable = $options[$tokenType][1];
+            $replacements = array_merge($replacements, $r);
+            break;
 
-          $replacement = $tokenReplacer->replaceUserDefined($token, $adminDefinedVariable, $bubbleable_metadata);
+          case "user_defined":
 
-          if (empty($replacement) && $removeIfNotPresent) {
+            $adminDefinedVariable = $options[$tokenType][1];
 
-            $replacement = [array_pop($tokenArray) => ''];
+            $r = $tokenReplacer->replaceUserDefined($token, $key, $adminDefinedVariable, $bubbleable_metadata);
 
-          }
+            if (empty($r) && $removeIfNotPresent) {
 
-          break;
+              $r = [array_pop($tokenArray) => ''];
 
-        default:
-          break;
+            }
+
+            $replacements = array_merge($replacements, $r);
+
+            break;
+
+          default:
+            break;
+
+        }
+
+      }
+      else {
+
+        $r = $tokenReplacer->replaceExoticToken($token, $key, $bubbleable_metadata);
+
+        $replacements = array_merge($replacements, $r);
 
       }
 
     }
-    else {
 
-      $replacement = $tokenReplacer->replaceExoticToken($token, $bubbleable_metadata);
-
-    }
-
-    return $replacement;
+    return $replacements;
 
   }
 }
