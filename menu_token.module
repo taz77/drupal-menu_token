@@ -482,30 +482,32 @@ function menu_token_menu_links_discovered_alter(&$links) {
   // Load configuration from entity.
   $relevantLinks = array_filter($links, function ($k) {
     return strpos($k, 'menu_link_content:') === 0;
-  }, 2);
+  });
 
   $token_service = \Drupal::token();
   $bubbleableMetadata = new BubbleableMetadata();
 
   $contextManager = \Drupal::service('menu_token.context_manager');
 
+  if (!empty($relevantLinks) && is_array($relevantLinks)) {
 
-  foreach ($relevantLinks as $relevantLink) {
+    foreach ($relevantLinks as $relevantLink) {
 
-    $uuIdFromLink = substr($relevantLink['id'], strpos($relevantLink['id'], ":") + 1, strlen($relevantLink['id']));
-    $configMenu = \Drupal::entityTypeManager()
-      ->getStorage('link_configuration_storage')
-      ->load($uuIdFromLink);
+      $uuIdFromLink = substr($relevantLink['id'], strpos($relevantLink['id'], ":") + 1, strlen($relevantLink['id']));
+      $configMenu = \Drupal::entityTypeManager()
+        ->getStorage('link_configuration_storage')
+        ->load($uuIdFromLink);
 
-    $config = unserialize($configMenu->configurationSerialized);
+      $config = unserialize($configMenu->configurationSerialized);
 
-    if (!empty($configMenu)) {
+      if (!empty($configMenu)) {
 
-      $contextManager->prepareContectualLinks($relevantLink, $config);
+        $contextManager->prepareContectualLinks($relevantLink, $config);
 
-      replace_links_with_tokens($token_service, "url", $relevantLink, $links, $bubbleableMetadata);
-      replace_links_with_tokens($token_service, "title", $relevantLink, $links, $bubbleableMetadata);
+        replace_links_with_tokens($token_service, "url", $relevantLink, $links, $bubbleableMetadata);
+        replace_links_with_tokens($token_service, "title", $relevantLink, $links, $bubbleableMetadata);
 
+      }
     }
   }
 
