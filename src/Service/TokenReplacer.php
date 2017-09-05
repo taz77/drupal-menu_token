@@ -97,10 +97,10 @@ class TokenReplacer {
       if ($contextDataDefinitionType["id"] == "entity" && method_exists($value, "getEntityTypeId") && $value->getEntityTypeId() == $entityType) {
 
         // A trap of default value.
-        if (method_exists($value, "isDefault") && $value->isDefault()) {
+        /*if (method_exists($value, "isDefault") && $value->isDefault()) {
           $value = "";
 
-        }
+        }*/
         if (!empty($value)) {
           $rVar = $value;
 
