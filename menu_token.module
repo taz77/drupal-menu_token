@@ -11,7 +11,7 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Utility\Token;
-use Drupal\Core\Cache\Cache;
+use Drupal\Core\PhpStorage\PhpStorageFactory;
 
 /**
  * Implements hook_help().
@@ -351,6 +351,17 @@ function menu_token_form_submit($form, &$form_state) {
     // Reset all static caches.
     drupal_static_reset();
     \Drupal::cache()->deleteAll();
+
+    // Flush asset file caches.
+    \Drupal::service('asset.css.collection_optimizer')->deleteAll();
+    \Drupal::service('asset.js.collection_optimizer')->deleteAll();
+    _drupal_flush_css_js();
+
+    // Wipe the Twig PHP Storage cache.
+    PhpStorageFactory::get('twig')->deleteAll();
+
+    // Reset all static caches.
+    drupal_static_reset();
 
   }
 }
