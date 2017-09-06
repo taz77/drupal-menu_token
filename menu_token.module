@@ -377,7 +377,7 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
             $r = $tokenReplacer->replaceNone($token, $key, $bubbleable_metadata);
             $replacements = array_merge($replacements, $r);
 
-            break;
+            continue;
 
           case "context":
 
@@ -395,7 +395,7 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
 
             $replacements = array_merge($replacements, $r);
 
-            break;
+            continue;
 
           case "random":
 
@@ -407,7 +407,7 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
             }
 
             $replacements = array_merge($replacements, $r);
-            break;
+            continue;
 
           case "user_defined":
 
@@ -423,10 +423,10 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
 
             $replacements = array_merge($replacements, $r);
 
-            break;
+            continue;
 
           default:
-            break;
+            continue;
 
         }
 
@@ -436,6 +436,7 @@ function menu_token_tokens($tokenType, $tokenArray, array $data, array $options,
         $r = $tokenReplacer->replaceExoticToken($token, $key, $bubbleable_metadata);
 
         $replacements = array_merge($replacements, $r);
+        continue;
 
       }
 

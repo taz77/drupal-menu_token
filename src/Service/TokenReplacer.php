@@ -87,9 +87,16 @@ class TokenReplacer {
       $contextDataDefinitionType = $realCI->getContextData()->getPluginDefinition();
       $value = $realCI->getContextData()->getValue();
 
+      // Service contextRepository does not return value as expected
+      // on anonymous users.
+      if ($entityType == "user" && method_exists($value, "isAnonymous") && $value->isAnonymous()) {
+        // $value = User::load(\Drupal::currentUser()->id());.
+        // Drupal screw me... User will always ask why
+        // there are nothing shown for anonymous user..
+        // Let them have string Anonymous and they will be happy and quiet.
+        return [$token => "Anonymous"];
+      }
 
-      // If value is empty and there is no context.
-      // We use first value just to make menu system work.
       if (empty($value)) {
 
 
@@ -119,6 +126,7 @@ class TokenReplacer {
         }
       }
     }
+
 
     return "";
 
@@ -170,6 +178,9 @@ class TokenReplacer {
 
     $tokenType = $this->getTokenType($token);
 
+    $b->addCacheContexts(["url"]);
+    $b->addCacheContexts(["user"]);
+
     $data = [];
     switch ($tokenType) {
 
@@ -177,13 +188,25 @@ class TokenReplacer {
         $data["url"] = Url::createFromRequest(\Drupal::request());
         break;
 
+      case "current-user":
+        $data["user"] = User::load(\Drupal::currentUser()->id());
+
+        if (method_exists($data["user"], "isAnonymous") && $data["user"]->isAnonymous()) {
+          // $value = User::load(\Drupal::currentUser()->id());.
+          // Drupal screw me... User will always ask why
+          // there are nothing shown for anonymous user..
+          // Let them have string Anonymous and they will be happy and quiet.
+          return [$token => "Anonymous"];
+        }
+
+        break;
+
       default:
         break;
 
     }
 
-    $b->addCacheContexts(["url"]);
-    $b->addCacheContexts(["user"]);
+
 
     // Exotic tokens...
     $replacement = $this->tokenService->generate($tokenType, [$key => $token], $data, [], $b);
