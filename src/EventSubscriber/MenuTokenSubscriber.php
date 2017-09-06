@@ -16,15 +16,17 @@ class MenuTokenSubscriber implements EventSubscriberInterface {
    */
   public function onController(FilterControllerEvent $event) {
 
+
+    $curUserId = \Drupal::currentUser()->id();
     // Use cache to avoid duplacate req!
-    $cache = \Drupal::cache()->get('menu_token_cached_context');
+    $cache = \Drupal::cache()->get('menu_token_cached_context' . $curUserId);
     $cr = \Drupal::service('context.repository');
     $contextsDef = $cr->getAvailableContexts();
     $realC = $cr->getRuntimeContexts(array_keys($contextsDef));
 
     if (empty($cache->data) || sha1(serialize($realC)) != sha1(serialize($cache->data))) {
 
-      \Drupal::cache()->set('menu_token_cached_context', $realC, -1, ['menu_token_cached_context_tag']);
+      \Drupal::cache()->set('menu_token_cached_context' . $curUserId, $realC, -1, ['menu_token_cached_context_tag' . $curUserId]);
 
       $menuTokenMenuLinkManager = \Drupal::service('menu_token.context_manager');
       $menuTokenMenuLinkManager->replaceContectualLinks();

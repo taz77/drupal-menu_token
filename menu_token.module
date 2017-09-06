@@ -347,9 +347,10 @@ function menu_token_form_submit($form, &$form_state) {
 
     $menuTokenMenuLinkManager = \Drupal::service('plugin.manager.menu.link');
     $menuTokenMenuLinkManager->rebuild();
-    
+
     // Reset all static caches.
     drupal_static_reset();
+    \Drupal::cache()->deleteAll();
 
   }
 }
