@@ -4,7 +4,6 @@ namespace Drupal\menu_token;
 
 use Drupal\Core\Config\Entity\ConfigEntityListBuilder;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\menu_token\Entity\LinkConfigurationStorage;
 
 /**
  * Provides a listing of Link configuration storage entities.

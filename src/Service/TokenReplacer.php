@@ -11,10 +11,9 @@ use Drupal\Core\Url;
 use Drupal\user\Entity\User;
 
 /**
- * {@inheritdoc}
+ * TokenReplacer class.
  */
 class TokenReplacer {
-
 
   protected $tokenService;
   protected $contextRepository;
@@ -26,19 +25,18 @@ class TokenReplacer {
    * {@inheritdoc}
    */
   public function __construct(TokenInterface $tokenService, ContextRepositoryInterface $c, TokenEntityMapperInterface $tem, EntityTypeManagerInterface $en) {
-
     $this->tokenService = $tokenService;
     $this->contextRepository = $c;
     $this->tokenEntityMapper = $tem;
     $this->entityTypeManager = $en;
-
   }
 
   /**
-   * {@inheritdoc}
+   * @param $token
+   *
+   * @return mixed
    */
   private function getTokenType($token) {
-
     preg_match_all('/
       \[             # [ - pattern start
       ([^\s\[\]:]+)  # match $type not containing whitespace : [ or ]
@@ -49,47 +47,50 @@ class TokenReplacer {
 
     $types = $matches[1];
     return $types[0];
-
   }
 
   /**
-   * {@inheritdoc}
+   * @param $token
+   *
+   * @return array
    */
   public function replaceNone($token) {
-
     $replacement = [$token => ''];
-
     return $replacement;
   }
 
   /**
-   * {@inheritdoc}
+   * Replace context.
+   *
+   * @param $token
+   * @param $key
+   * @param BubbleableMetadata $b
+   *
+   * @return array|string
    */
   public function replaceContext($token, $key, BubbleableMetadata $b) {
 
-    $tokenType = $this->getTokenType($token);
-    $entityType = $this->tokenEntityMapper->getEntityTypeForTokenType($tokenType);
+    $token_type = $this->getTokenType($token);
+    $entity_type = $this->tokenEntityMapper->getEntityTypeForTokenType($token_type);
 
     $b->addCacheContexts(["url"]);
     $b->addCacheContexts(["user"]);
 
     // If there is no entity type we are in trouble..
-    if ($entityType === FALSE) {
-
+    if ($entity_type === FALSE) {
       return "";
     }
 
-    $contextsDef = $this->contextRepository->getAvailableContexts();
-    $realC = $this->contextRepository->getRuntimeContexts(array_keys($contextsDef));
+    $contexts_def = $this->contextRepository->getAvailableContexts();
+    $real_context = $this->contextRepository->getRuntimeContexts(array_keys($contexts_def));
 
-    foreach ($realC as $keyI => $realCI) {
-
-      $contextDataDefinitionType = $realCI->getContextData()->getPluginDefinition();
-      $value = $realCI->getContextData()->getValue();
+    foreach ($real_context as $key_i => $real_ci) {
+      $context_data_definition_type = $real_ci->getContextData()->getPluginDefinition();
+      $value = $real_ci->getContextData()->getValue();
 
       // Service contextRepository does not return value as expected
       // on anonymous users.
-      if ($entityType == "user" && method_exists($value, "isAnonymous") && $value->isAnonymous()) {
+      if ($entity_type == "user" && method_exists($value, "isAnonymous") && $value->isAnonymous()) {
         // $value = User::load(\Drupal::currentUser()->id());.
         // Drupal screw me... User will always ask why
         // there are nothing shown for anonymous user..
@@ -98,92 +99,89 @@ class TokenReplacer {
       }
 
       if (empty($value)) {
-
-
-        switch ($entityType) {
+        switch ($entity_type) {
           case "user":
             $value = User::load(\Drupal::currentUser()->id());
             break;
 
           default:
             continue;
-
         }
       }
 
-      if ($contextDataDefinitionType["id"] == "entity" && method_exists($value, "getEntityTypeId") && $value->getEntityTypeId() == $entityType) {
-
+      if ($context_data_definition_type["id"] == "entity" && method_exists($value, "getEntityTypeId") && $value->getEntityTypeId() == $entity_type) {
         if (!empty($value)) {
-          $rVar = $value;
-
-          if (is_array($rVar)) {
-            $rVar = array_pop($rVar);
+          $r_var = $value;
+          if (is_array($r_var)) {
+            $r_var = array_pop($r_var);
           }
-
-          $replacement = $this->tokenService->generate($tokenType, [$key => $token], [$tokenType => $rVar], [], $b);
-
+          $replacement = $this->tokenService->generate($token_type, [$key => $token], [$token_type => $r_var], [], $b);
           return $replacement;
         }
       }
     }
-
-
     return "";
-
   }
 
   /**
-   * {@inheritdoc}
+   * @param $token
+   * @param $key
+   * @param BubbleableMetadata $b
+   *
+   * @return mixed
    */
   public function replaceRandom($token, $key, BubbleableMetadata $b) {
 
-    $tokenType = $this->getTokenType($token);
-    $entityType = $this->tokenEntityMapper->getEntityTypeForTokenType($tokenType);
+    $token_type = $this->getTokenType($token);
+    $entity_type = $this->tokenEntityMapper->getEntityTypeForTokenType($token_type);
 
-    $query = \Drupal::entityQuery($entityType);
-    $userIds = $query->execute();
+    $query = \Drupal::entityQuery($entity_type);
+    $user_ids = $query->execute();
 
     // Pick one random user.
-    $randomId = array_rand($userIds, 1);
+    $random_id = array_rand($user_ids, 1);
+    $random_user = $this->entityTypeManager->getStorage($entity_type)
+      ->load($random_id);
 
-    $randomVar = $this->entityTypeManager->getStorage($entityType)
-      ->load($randomId);
-
-    $replacement = $this->tokenService->generate($tokenType, [$key => $token], [$tokenType => $randomVar], [], $b);
-
-
+    $replacement = $this->tokenService->generate($token_type, [$key => $token], [$token_type => $random_user], [], $b);
     return $replacement;
   }
 
   /**
-   * {@inheritdoc}
+   * @param $token
+   * @param $key
+   * @param $value
+   * @param BubbleableMetadata $b
+   *
+   * @return mixed
    */
   public function replaceUserDefined($token, $key, $value, BubbleableMetadata $b) {
 
-    $tokenType = $this->getTokenType($token);
-    $entityType = $this->tokenEntityMapper->getEntityTypeForTokenType($tokenType);
+    $token_type = $this->getTokenType($token);
+    $entity_type = $this->tokenEntityMapper->getEntityTypeForTokenType($token_type);
 
-    $dynamicVar = \Drupal::entityTypeManager()->getStorage($entityType)
+    $entity_object = \Drupal::entityTypeManager()->getStorage($entity_type)
       ->load($value);
-
-    $replacement = $this->tokenService->generate($tokenType, [$key => $token], [$tokenType => $dynamicVar], [], $b);
-
+    $replacement = $this->tokenService->generate($token_type, [$key => $token], [$token_type => $entity_object], [], $b);
     return $replacement;
   }
 
   /**
-   * {@inheritdoc}
+   * @param $token
+   * @param $key
+   * @param BubbleableMetadata $b
+   *
+   * @return array
    */
   public function replaceExoticToken($token, $key, BubbleableMetadata $b) {
 
-    $tokenType = $this->getTokenType($token);
+    $token_type = $this->getTokenType($token);
 
     $b->addCacheContexts(["url"]);
     $b->addCacheContexts(["user"]);
 
     $data = [];
-    switch ($tokenType) {
-
+    switch ($token_type) {
       case "url":
         $data["url"] = Url::createFromRequest(\Drupal::request());
         break;
@@ -198,19 +196,14 @@ class TokenReplacer {
           // Let them have string Anonymous and they will be happy and quiet.
           return [$token => "Anonymous"];
         }
-
         break;
 
       default:
         break;
-
     }
 
-
-
     // Exotic tokens...
-    $replacement = $this->tokenService->generate($tokenType, [$key => $token], $data, [], $b);
-
+    $replacement = $this->tokenService->generate($token_type, [$key => $token], $data, [], $b);
     return $replacement;
   }
 

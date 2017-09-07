@@ -26,14 +26,8 @@ class AvailableEntitiesConfigurationForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function __construct(
-
-    ConfigFactoryInterface $config_factory,
-    EntityTypeManagerInterface $entity_type_manager
-    ) {
-
+  public function __construct(ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager) {
     parent::__construct($config_factory);
-
     $this->entityTypeManager = $entity_type_manager;
   }
 
@@ -42,7 +36,8 @@ class AvailableEntitiesConfigurationForm extends ConfigFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('config.factory'), $container->get('entity_type.manager')
+      $container->get('config.factory'),
+      $container->get('entity_type.manager')
     );
   }
 
@@ -78,17 +73,13 @@ class AvailableEntitiesConfigurationForm extends ConfigFormBase {
     foreach ($entity_type_definitions as $definition) {
 
       if ($definition instanceof ContentEntityType) {
-
         if (!empty($config->getRawData()['available_entities'][$definition->id()])) {
-
           $form['available_entities']['#options'][$definition->id()] = $definition->id();
 
           // Definition that is marked for check is checked.
           $form['available_entities']['#default_value'][] = $definition->id();
-
         }
         else {
-
           $form['available_entities']['#options'][$definition->id()] = $definition->id();
         }
       }

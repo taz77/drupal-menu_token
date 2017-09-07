@@ -7,7 +7,7 @@ use Drupal\Core\Controller\ControllerBase;
 /**
  * An example controller.
  */
-class MenuTokenSuportedTokensController extends ControllerBase {
+class MenuTokenSupportedTokensController extends ControllerBase {
 
   /**
    * {@inheritdoc}
@@ -18,11 +18,10 @@ class MenuTokenSuportedTokensController extends ControllerBase {
     $data = $availableEntitiesConfiguration->getRawData();
 
     $renderable = [];
-    foreach ($data['available_entities'] as $configKey => $configItem) {
+    foreach ($data['available_entities'] as $config_key => $config_item) {
 
-      if ($configItem !== 0) {
-
-        $renderable[] = $configKey;
+      if ($config_item !== 0) {
+        $renderable[] = $config_key;
       }
     }
 

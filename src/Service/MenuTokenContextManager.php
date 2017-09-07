@@ -10,10 +10,9 @@ use Drupal\token\TokenInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
- * {@inheritdoc}
+ * Menu token context manager service.
  */
 class MenuTokenContextManager {
-
 
   protected $tokenService;
   protected $contextRepository;
@@ -21,107 +20,82 @@ class MenuTokenContextManager {
   protected $state;
   protected $entityTypeManager;
   protected $menuTokenMenuLinkManager;
-  protected $contectualReplacmentLinks;
+  protected $contextualReplacementLinks;
 
   /**
    * {@inheritdoc}
    */
   public function __construct(TokenInterface $tokenService, ContextRepositoryInterface $c, TokenEntityMapperInterface $tem, EntityTypeManagerInterface $en, StateInterface $state, MenuLinkManagerInterface $mlm) {
-
     $this->tokenService = $tokenService;
     $this->contextRepository = $c;
     $this->tokenEntityMapper = $tem;
     $this->entityTypeManager = $en;
     $this->state = $state;
     $this->menuTokenMenuLinkManager = $mlm;
-
-    $this->contectualReplacmentLinks = unserialize($this->state->get('menu_token_links_contectual_replacments'));
-
-    if (empty($contectualReplacmentLinks)) {
-
-      $this->contectualReplacmentLinks = [];
-
+    $this->contextualReplacementLinks = unserialize($this->state->get('menu_token_links_contextual_replacements'));
+    if (empty($this->contextualReplacementLinks)) {
+      $this->contextualReplacementLinks = [];
     }
-
   }
 
   /**
-   * {@inheritdoc}
+   * @param $relevantLink
+   * @param $config
    */
-  public function prepareContectualLinks($relevantLink, $config) {
+  public function prepareContextualLinks($relevantLink, $config) {
 
-    $this->contectualReplacmentLinks = unserialize($this->state->get('menu_token_links_contectual_replacments'));
-
+    $this->contextualReplacementLinks = unserialize($this->state->get('menu_token_links_contextual_replacements'));
     $text_tokens = $this->tokenService->scan($relevantLink["url"]);
-
     $text_tokens = array_merge($text_tokens, $this->tokenService->scan($relevantLink["title"]));
 
-    $useInContext = FALSE;
+    $use_in_context = FALSE;
+    foreach ($text_tokens as $token_type => $tokens) {
+      $entity_type = $this->tokenEntityMapper->getEntityTypeForTokenType($token_type);
 
-    foreach ($text_tokens as $tokenType => $tokens) {
-      $entityType = $this->tokenEntityMapper->getEntityTypeForTokenType($tokenType);
-
-      if (empty($config[$entityType][0]) || $config[$entityType][0] === "context") {
-
-        $useInContext = TRUE;
-
+      if (empty($config[$entity_type][0]) || $config[$entity_type][0] === "context") {
+        $use_in_context = TRUE;
       }
-
-      if ($entityType === FALSE) {
-
-        $useInContext = TRUE;
+      if ($entity_type === FALSE) {
+        $use_in_context = TRUE;
       }
-
     }
 
-    if ($useInContext) {
-
-      $this->contectualReplacmentLinks[$relevantLink['id']] = [
+    if ($use_in_context) {
+      $this->contextualReplacementLinks[$relevantLink['id']] = [
         "link" => $relevantLink,
         "config" => $config,
       ];
     }
     else {
-
-      unset($this->contectualReplacmentLinks[$relevantLink['id']]);
-
+      unset($this->contextualReplacementLinks[$relevantLink['id']]);
     }
-
-    $this->state->set('menu_token_links_contectual_replacments', serialize($this->contectualReplacmentLinks));
-
+    $this->state->set('menu_token_links_contextual_replacements', serialize($this->contextualReplacementLinks));
   }
 
   /**
-   * {@inheritdoc}
+   * @param $uuid_from_link
    */
-  public function removeFromState($uuIdFromLink) {
-
-    unset($this->contectualReplacmentLinks[$uuIdFromLink]);
+  public function removeFromState($uuid_from_link) {
+    unset($this->contextualReplacementLinks[$uuid_from_link]);
   }
 
   /**
-   * {@inheritdoc}
+   * Reset menu_token_links_contextual_replacements.
    */
   public function clear() {
-
-    $this->contectualReplacmentLinks = [];
-
-    $this->state->set('menu_token_links_contectual_replacments', serialize($this->contectualReplacmentLinks));
+    $this->contextualReplacementLinks = [];
+    $this->state->set('menu_token_links_contextual_replacements', serialize($this->contextualReplacementLinks));
   }
 
   /**
-   * {@inheritdoc}
+   * Replace contextual links.
    */
-  public function replaceContectualLinks() {
-
-    $contectualReplacmentLinks = unserialize($this->state->get('menu_token_links_contectual_replacments'));
-
-    if (empty($contectualReplacmentLinks)) {
+  public function replaceContextualLinks() {
+    $contextual_replacement_links = unserialize($this->state->get('menu_token_links_contextual_replacements'));
+    if (empty($contextual_replacement_links)) {
       return TRUE;
     }
-
-    $this->menuTokenMenuLinkManager->rebuildMenuToken($contectualReplacmentLinks);
-
+    $this->menuTokenMenuLinkManager->rebuildMenuToken($contextual_replacement_links);
   }
 
 }

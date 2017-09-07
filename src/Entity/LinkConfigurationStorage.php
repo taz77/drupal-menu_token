@@ -56,15 +56,13 @@ class LinkConfigurationStorage extends ConfigEntityBase implements LinkConfigura
 
 
   /**
-   * The link id
+   * The link id.
    *
    * @var string
    */
   public $linkid;
 
   /**
-   *
-   *
    * @var string
    */
   public $configurationSerialized;
