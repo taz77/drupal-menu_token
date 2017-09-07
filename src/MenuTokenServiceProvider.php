@@ -14,7 +14,10 @@ use Symfony\Component\DependencyInjection\Reference;
 class MenuTokenServiceProvider extends ServiceProviderBase {
 
   /**
-   * {@inheritdoc}
+   * Override menu.link_tree service.
+   *
+   * @param \Drupal\Core\DependencyInjection\ContainerBuilder $container
+   *   Dep container.
    */
   public function alter(ContainerBuilder $container) {
     $definition = $container->getDefinition('menu.link_tree');

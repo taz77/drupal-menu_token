@@ -32,9 +32,13 @@ class TokenReplacer {
   }
 
   /**
-   * @param $token
+   * Get token type from token string.
+   *
+   * @param string $token
+   *   Token string.
    *
    * @return mixed
+   *   array.
    */
   private function getTokenType($token) {
     preg_match_all('/
@@ -50,9 +54,13 @@ class TokenReplacer {
   }
 
   /**
-   * @param $token
+   * Replacment for the none selection in the admin menu.
    *
-   * @return array
+   * @param string $token
+   *   Token string.
+   *
+   * @return mixed
+   *   array.
    */
   public function replaceNone($token) {
     $replacement = [$token => ''];
@@ -60,13 +68,17 @@ class TokenReplacer {
   }
 
   /**
-   * Replace context.
+   * Replace token string with the value from context.
    *
-   * @param $token
-   * @param $key
-   * @param BubbleableMetadata $b
+   * @param string $token
+   *   Token to be replaced.
+   * @param string $key
+   *   Key in token.
+   * @param \Drupal\Core\Render\BubbleableMetadata $b
+   *   Bubable metadata for cache context.
    *
    * @return array|string
+   *   Returns replaced token.
    */
   public function replaceContext($token, $key, BubbleableMetadata $b) {
 
@@ -124,18 +136,23 @@ class TokenReplacer {
   }
 
   /**
-   * @param $token
-   * @param $key
-   * @param BubbleableMetadata $b
+   * Replace token string with the value from context.
    *
-   * @return mixed
+   * @param string $token
+   *   Token to be replaced.
+   * @param string $key
+   *   Key in token.
+   * @param \Drupal\Core\Render\BubbleableMetadata $b
+   *   Bubable metadata for cache context.
+   *
+   * @return array|string
+   *   Returns replaced token.
    */
   public function replaceRandom($token, $key, BubbleableMetadata $b) {
 
     $token_type = $this->getTokenType($token);
     $entity_type = $this->tokenEntityMapper->getEntityTypeForTokenType($token_type);
-
-    $query = \Drupal::entityQuery($entity_type);
+    $query = $this->entityTypeManager->getStorage($entity_type)->getQuery("AND");
     $user_ids = $query->execute();
 
     // Pick one random user.
@@ -148,30 +165,43 @@ class TokenReplacer {
   }
 
   /**
-   * @param $token
-   * @param $key
-   * @param $value
-   * @param BubbleableMetadata $b
+   * Replace token string with the value from context.
    *
-   * @return mixed
+   * @param string $token
+   *   Token to be replaced.
+   * @param string $key
+   *   Key in token.
+   * @param string $value
+   *   Admin submited value.
+   * @param \Drupal\Core\Render\BubbleableMetadata $b
+   *   Bubable metadata for cache context.
+   *
+   * @return array|string
+   *   Returns replaced token.
    */
   public function replaceUserDefined($token, $key, $value, BubbleableMetadata $b) {
 
     $token_type = $this->getTokenType($token);
     $entity_type = $this->tokenEntityMapper->getEntityTypeForTokenType($token_type);
 
-    $entity_object = \Drupal::entityTypeManager()->getStorage($entity_type)
+    $entity_object = $this->entityTypeManager->getStorage($entity_type)
       ->load($value);
     $replacement = $this->tokenService->generate($token_type, [$key => $token], [$token_type => $entity_object], [], $b);
     return $replacement;
   }
 
   /**
-   * @param $token
-   * @param $key
-   * @param BubbleableMetadata $b
+   * Replace token string with the value from global and special tokens.
    *
-   * @return array
+   * @param string $token
+   *   Token to be replaced.
+   * @param string $key
+   *   Key in token.
+   * @param \Drupal\Core\Render\BubbleableMetadata $b
+   *   Bubable metadata for cache context.
+   *
+   * @return array|string
+   *   Returns replaced token.
    */
   public function replaceExoticToken($token, $key, BubbleableMetadata $b) {
 
@@ -190,10 +220,6 @@ class TokenReplacer {
         $data["user"] = User::load(\Drupal::currentUser()->id());
 
         if (method_exists($data["user"], "isAnonymous") && $data["user"]->isAnonymous()) {
-          // $value = User::load(\Drupal::currentUser()->id());.
-          // Drupal screw me... User will always ask why
-          // there are nothing shown for anonymous user..
-          // Let them have string Anonymous and they will be happy and quiet.
           return [$token => "Anonymous"];
         }
         break;
