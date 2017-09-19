@@ -435,9 +435,9 @@ function menu_token_menu_links_discovered_alter(&$links) {
       $configMenu = \Drupal::entityTypeManager()
         ->getStorage('link_configuration_storage')
         ->load($uuId_from_link);
-      $config = unserialize($configMenu->configurationSerialized);
 
       if (!empty($configMenu)) {
+        $config = unserialize($configMenu->configurationSerialized);
         $context_manager->prepareContextualLinks($relevant_link, $config);
         replace_links_with_tokens($token_service, "url", $relevant_link, $links, $bubbleable_metadata);
         replace_links_with_tokens($token_service, "title", $relevant_link, $links, $bubbleable_metadata);
