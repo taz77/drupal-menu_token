@@ -1,0 +1,67 @@
+diff --git a/menu_token.module b/menu_token.module
+index 65d4035..6a6c39e 100644
+--- a/menu_token.module
++++ b/menu_token.module
+@@ -410,11 +410,22 @@ function menu_token_prepare_context_replacement(&$links) {
+ 
+ }
+ 
++
++
++
+ /**
+  * Replace links with tokens.
+  */
+ function menu_token_menu_links_discovered_alter(&$links) {
+ 
++
++  $context_manager = \Drupal::service('menu_token.context_manager');
++  $context_manager->clear();
++
++  $undiscoveredDef = $context_manager->getUndiscoveredMenuDefinitions();
++
++  $links = array_merge($links, $undiscoveredDef);
++
+   // Load configuration from entity.
+   $relevant_links = array_filter($links, function ($k) {
+     if (!isset($k['id'])) {
+@@ -426,8 +437,6 @@ function menu_token_menu_links_discovered_alter(&$links) {
+   $token_service = \Drupal::token();
+   $bubbleable_metadata = new BubbleableMetadata();
+ 
+-  $context_manager = \Drupal::service('menu_token.context_manager');
+-  $context_manager->clear();
+ 
+   if (!empty($relevant_links) && is_array($relevant_links)) {
+     foreach ($relevant_links as $relevant_link) {
+diff --git a/src/Service/MenuTokenContextManager.php b/src/Service/MenuTokenContextManager.php
+index d5db839..f196a90 100644
+--- a/src/Service/MenuTokenContextManager.php
++++ b/src/Service/MenuTokenContextManager.php
+@@ -39,8 +39,24 @@ class MenuTokenContextManager {
+   }
+ 
+   /**
+-   * @param $relevantLink
+-   * @param $config
++   * {@inheritdoc}
++   */
++  public function getUndiscoveredMenuDefinitions() {
++    // Get all custom menu links which should be rediscovered.
++    $entity_ids = $this->entityTypeManager->getStorage('menu_link_content')->getQuery()
++      ->condition('rediscover', FALSE)
++      ->execute();
++    $plugin_definitions = [];
++    $menu_link_content_entities = $this->entityTypeManager->getStorage('menu_link_content')->loadMultiple($entity_ids);
++    /** @var \Drupal\menu_link_content\MenuLinkContentInterface $menu_link_content */
++    foreach ($menu_link_content_entities as $menu_link_content) {
++      $plugin_definitions['menu_link_content:' . $menu_link_content->uuid()] = $menu_link_content->getPluginDefinition();
++    }
++    return $plugin_definitions;
++  }
++
++  /**
++   * {@inheritdoc}
+    */
+   public function prepareContextualLinks($relevantLink, $config) {
+ 

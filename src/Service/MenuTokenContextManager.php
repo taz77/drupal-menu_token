@@ -39,8 +39,24 @@ class MenuTokenContextManager {
   }
 
   /**
-   * @param $relevantLink
-   * @param $config
+   * {@inheritdoc}
+   */
+  public function getUndiscoveredMenuDefinitions() {
+    // Get all custom menu links which should be rediscovered.
+    $entity_ids = $this->entityTypeManager->getStorage('menu_link_content')->getQuery()
+      ->condition('rediscover', FALSE)
+      ->execute();
+    $plugin_definitions = [];
+    $menu_link_content_entities = $this->entityTypeManager->getStorage('menu_link_content')->loadMultiple($entity_ids);
+    /** @var \Drupal\menu_link_content\MenuLinkContentInterface $menu_link_content */
+    foreach ($menu_link_content_entities as $menu_link_content) {
+      $plugin_definitions['menu_link_content:' . $menu_link_content->uuid()] = $menu_link_content->getPluginDefinition();
+    }
+    return $plugin_definitions;
+  }
+
+  /**
+   * {@inheritdoc}
    */
   public function prepareContextualLinks($relevantLink, $config) {
 

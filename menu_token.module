@@ -410,10 +410,21 @@ function menu_token_prepare_context_replacement(&$links) {
 
 }
 
+
+
+
 /**
  * Replace links with tokens.
  */
 function menu_token_menu_links_discovered_alter(&$links) {
+
+
+  $context_manager = \Drupal::service('menu_token.context_manager');
+  $context_manager->clear();
+
+  $undiscoveredDef = $context_manager->getUndiscoveredMenuDefinitions();
+
+  $links = array_merge($links, $undiscoveredDef);
 
   // Load configuration from entity.
   $relevant_links = array_filter($links, function ($k) {
@@ -426,8 +437,6 @@ function menu_token_menu_links_discovered_alter(&$links) {
   $token_service = \Drupal::token();
   $bubbleable_metadata = new BubbleableMetadata();
 
-  $context_manager = \Drupal::service('menu_token.context_manager');
-  $context_manager->clear();
 
   if (!empty($relevant_links) && is_array($relevant_links)) {
     foreach ($relevant_links as $relevant_link) {
