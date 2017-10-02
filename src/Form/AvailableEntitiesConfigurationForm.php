@@ -19,7 +19,7 @@ class AvailableEntitiesConfigurationForm extends ConfigFormBase {
   /**
    * Drupal\webprofiler\Entity\EntityManagerWrapper definition.
    *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface;
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
 

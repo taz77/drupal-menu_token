@@ -410,14 +410,10 @@ function menu_token_prepare_context_replacement(&$links) {
 
 }
 
-
-
-
 /**
  * Replace links with tokens.
  */
 function menu_token_menu_links_discovered_alter(&$links) {
-
 
   $context_manager = \Drupal::service('menu_token.context_manager');
   $context_manager->clear();
@@ -436,7 +432,6 @@ function menu_token_menu_links_discovered_alter(&$links) {
 
   $token_service = \Drupal::token();
   $bubbleable_metadata = new BubbleableMetadata();
-
 
   if (!empty($relevant_links) && is_array($relevant_links)) {
     foreach ($relevant_links as $relevant_link) {

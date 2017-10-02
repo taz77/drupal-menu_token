@@ -4,7 +4,6 @@ namespace Drupal\menu_token\Form;
 
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\menu_token\Entity\LinkConfigurationStorage;
 
 /**
  * Class LinkConfigurationStorageForm.
@@ -19,7 +18,7 @@ class LinkConfigurationStorageForm extends EntityForm {
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
 
-    /** @var LinkConfigurationStorage $link_configuration_storage */
+    /** @var \Drupal\menu_token\Entity\LinkConfigurationStorage $link_configuration_storage */
     $link_configuration_storage = $this->entity;
     $form['label'] = [
       '#type' => 'textfield',

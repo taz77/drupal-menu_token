@@ -5,9 +5,6 @@ namespace Drupal\menu_token\EventSubscriber;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Drupal\Core\Session\AccountProxy;
-use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
 use Drupal\menu_token\Service\MenuTokenContextManager;
 
 /**
@@ -42,7 +39,6 @@ class MenuTokenSubscriber implements EventSubscriberInterface {
   public function onController(FilterControllerEvent $event) {
 
     $this->menuTokenContextManager->replaceContextualLinks();
-
 
   }
 
