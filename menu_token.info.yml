@@ -6,6 +6,7 @@ package: Custom
 configure: menu_token.available_entities_configuration_form
 dependencies:
   - token
+  - contribute
 enforced:
   module:
    - menu_token
