@@ -15,6 +15,12 @@ CONTENTS OF THIS FILE
 INTRODUCTION
 ------------
 
+This is a fork of the Menu Token module to remove the dependency on the
+Contribute module. See this issue: https://www.drupal.org/project/menu_token/issues/2941131
+
+I will do my best to maintain this as a downstream of the module and update as
+necessary.
+
 Menu Token module provides tokens, that could be used in title
 or in path of menu items (links). For example, if you create
 a menu item with path: "user/[current-user:uid]", the url will be
