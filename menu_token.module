@@ -389,6 +389,9 @@ function replace_links_with_tokens(Token $token_service, $replace_with, $relevan
   if (!empty($config_menu)) {
     $configuration = unserialize($config_menu->configurationSerialized);
     $links[$relevant_link['id']][$replace_with] = $token_service->replace($links[$relevant_link['id']][$replace_with], [], ["configuration" => $configuration], $bubbleableMetadata);
+    if (is_null($links[$relevant_link['id']][$replace_with])) {
+      $links[$relevant_link['id']][$replace_with] = $token_service->replace($config_menu->linkid, [], ["configuration" => $configuration], $bubbleableMetadata);
+    }
     $links[$relevant_link['id']]["options"]["bubleble_metadata"] = $bubbleableMetadata;
   }
 }
