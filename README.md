@@ -71,8 +71,17 @@ Install as usual, see
  https://www.drupal.org/docs/8/extending-drupal-8/installing-contributed-modules-find-import-enable-configure-drupal-8 for further
 information.
 
-Via drush: $ drush dl menu_token && drush en -y menu_token
+Via Composer:
+Add the following to your composer.json contained at the root of your Drupal site.  
+```
+          "drupal_menu_token": {
+            "type": "git",
+            "url": "https://github.com/taz77/drupal-menu_token"
+        }
+```
+After that has been added issue the command `composer require taz77/menu_token`
 
+Then enable the module either via Drush or the Admin UI.
 
 CONFIGURATION
 -------------
@@ -102,5 +111,5 @@ MAINTAINERS
 -----------
 
 Current maintainers:
- * Fernando Paredes García (develCuy) - https://www.drupal.org/user/125473
+ * Fernando Paredes Garcï¿½a (develCuy) - https://www.drupal.org/user/125473
  * Peter Draucbaher (peter.draucbaher)- https://www.drupal.org/user/2409142 
