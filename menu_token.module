@@ -264,7 +264,7 @@ function menu_token_form_submit($form, &$form_state) {
   else {
     $token_service = \Drupal::token();
 
-    // Have to find out witch type to use by tokens.
+    // Have to find out which type to use by tokens.
     // Available in link data and not in configuration entity.
     $title_tokens = $token_service->scan($values['title'][0]['value']);
     $uri_tokens = $token_service->scan($values['link'][0]['uri']);
@@ -389,6 +389,9 @@ function replace_links_with_tokens(Token $token_service, $replace_with, $relevan
   if (!empty($config_menu)) {
     $configuration = unserialize($config_menu->configurationSerialized);
     $links[$relevant_link['id']][$replace_with] = $token_service->replace($links[$relevant_link['id']][$replace_with], [], ["configuration" => $configuration], $bubbleableMetadata);
+    if (is_null($links[$relevant_link['id']][$replace_with])) {
+      $links[$relevant_link['id']][$replace_with] = $token_service->replace($config_menu->linkid, [], ["configuration" => $configuration], $bubbleableMetadata);
+    }
     $links[$relevant_link['id']]["options"]["bubleble_metadata"] = $bubbleableMetadata;
   }
 }
