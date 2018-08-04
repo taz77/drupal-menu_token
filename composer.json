@@ -1,5 +1,5 @@
 {
-  "name": "drupal/menu_token",
+  "name": "taz77/menu_token",
   "type": "drupal-module",
   "description": "Menu Token module provides tokens, that can be used in title or in path of menu items (links).",
   "homepage": "http://drupal.org/project/menu_token",
@@ -16,6 +16,9 @@
   ],
   "require": {
     "drupal/token": "^1.0"
+  },
+  "replace": {
+    "drupal/menu_token": "1.*"
   },
   "minimum-stability": "dev"
 }
